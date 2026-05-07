@@ -54,61 +54,63 @@ That drift is the failure mode.
 - Never modify function bodies — comments and README only
 - Output a one-line summary listing which functions gained docs
 
-Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
-  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
+Draw an ASCII art diagram of the proposed skill architecture and explain the reasons of the design.
 ```
 
-Read Genesis's design + ASCII diagram. That's your spec.
+Read both the ASCII diagram and the rationale Genesis returns. That's your spec — don't ask your harness to generate the skill until you've seen Genesis's design and understood the boundaries it drew.
 
-### Reference architecture — what good looks like
+### What Genesis returned for this brief
 
-Below is the canonical shape Genesis should emit for `docs-generator`. Yours may use different node names; what must hold is the **6-band shape** (Goal → Trigger → Inputs → Workflow → Verification → Output) and the **Safety Boundaries** wired into Workflow + Verification.
+Rendered in Mermaid for GitHub readability — Genesis emits ASCII into your chat. Same components, same edges. Yours may differ in naming; what must hold is the **safety-boundary gate as a first-class node** between generation and writes.
 
+```mermaid
+flowchart TD
+  IN[INPUT<br/>target_ts_path<br/>readme_path]
+  ANCHOR[SCOPE ANCHOR B8<br/>only allow-listed paths]
+  ALLOW[(ALLOW-LIST<br/>target_ts + README.md)]
+  AST[AST SCANNER<br/>S7 TS compiler]
+  FILTER[DECLARATION FILTER<br/>KEEP exported function<br/>DROP type/iface/class/zod]
+  JSDOC[JSDOC EMITTER LLM<br/>params returns throws<br/>only from source]
+  USAGE[USAGE EXAMPLE SYNTH LLM<br/>minimal call sites]
+  GATE[SAFETY BOUNDARY GATE<br/>path allow-list<br/>comment-only diff<br/>README append-or-create]
+  TSEDIT[TS FILE EDITOR<br/>S7 insert JSDoc above decl]
+  RMEDIT[README EDITOR<br/>S7 append Usage section]
+  TS[(target_ts file mutated)]
+  RM[(README.md mutated)]
+  SUM[SUMMARY EMITTER<br/>functions documented]
+
+  IN --> ANCHOR
+  ANCHOR --> ALLOW
+  ANCHOR --> AST
+  AST --> FILTER
+  FILTER --> JSDOC
+  FILTER --> USAGE
+  JSDOC --> GATE
+  USAGE --> GATE
+  ALLOW -. "enforces" .-> GATE
+  GATE --> TSEDIT
+  GATE --> RMEDIT
+  TSEDIT ==> TS
+  RMEDIT ==> RM
+  TSEDIT --> SUM
+  RMEDIT --> SUM
+
+  classDef external fill:#eee,stroke:#666,stroke-dasharray: 4 3;
+  classDef internal fill:#fff,stroke:#000;
+  classDef boundary fill:#fdd,stroke:#a44,stroke-width:2px;
+  class TS,RM,ALLOW external;
+  class IN,ANCHOR,AST,FILTER,JSDOC,USAGE,TSEDIT,RMEDIT,SUM internal;
+  class GATE boundary;
 ```
-┌─ Goal ─────────────────────────────────────────────────────┐
-│  Add JSDoc to exported functions in zava-storefront/lib/* │
-│  without inventing behavior                                │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Trigger ──────────────────────────────────────────────────┐
-│  "Use the docs-generator skill on lib/cart.ts."            │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Inputs ───────────────────────────────────────────────────┐
-│  • Target file: zava-storefront/lib/<file>.ts              │
-│  • zava-storefront/README.md (Usage section host)          │
-│  • TypeScript AST (read-only via Grep/Edit)                │
-│  • Out-of-scope filter: types, interfaces, zod schemas     │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Workflow ─────────────────────────────────────────────────┐
-│  1. parse target file → list `function` declarations only  │
-│  2. for each: read body, infer params/returns/throws       │
-│     ONLY from what the source shows (Safety Boundary)      │
-│  3. emit JSDoc above the declaration                       │
-│  4. append to README.md ## Usage with one example each     │
-│  5. NEVER modify function bodies                           │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Verification (the three-step oracle) ─────────────────────┐
-│  • git diff --name-only matches: target file + README.md  │
-│    only — no out-of-scope writes                           │
-│  • npx tsc --noEmit clean (comments don't break compile)   │
-│  • npm test green (function bodies untouched)              │
-│  • Comment-only diff in target file (no code lines moved)  │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Output artifact ──────────────────────────────────────────┐
-│  • Edited target file (JSDoc above each function)          │
-│  • Appended ## Usage section in zava-storefront/README.md  │
-│  • One-line summary: which functions gained docs           │
-└────────────────────────────────────────────────────────────┘
-```
+
+**Why this shape (rationale Genesis explained):**
+
+- **A2 PIPELINE wrapped by A9 SUPERVISED EXECUTION** — linear flow, but every write goes through one supervised gate. Flow is deterministic; only JSDoc body + usage example are LLM-judged.
+- **Safety Boundary Gate as a first-class node** (PROSE-S) — not a comment in the prose, an actual chokepoint. It enforces three rules at one place: path allow-list (no out-of-scope writes), comment-only diff in TS (function bodies untouched), append-or-create on README.
+- **B8 ATTENTION ANCHOR + allow-list** — scope is locked at the top of the pipeline. Long-context drift cannot widen it mid-run.
+- **Declaration filter is deterministic** (S7) — KEEP `exported function`, DROP types / interfaces / classes / zod schemas. The LLM never decides what's in scope — the AST does.
+- **S7 DETERMINISTIC TOOL BRIDGE** wraps every file mutation. The LLM proposes JSDoc text; the writer enforces position (above-declaration only).
+- **Failure modes guarded:** hallucinated `@param`/`@throws` (filter forbids inferring beyond source), wrong-file edits (allow-list), body mutation (gate rejects non-comment lines), unbounded README rewrite (append-only).
 
 ---
 

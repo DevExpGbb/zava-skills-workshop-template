@@ -52,58 +52,62 @@ In your IDE (your agent harness — Copilot CLI, Claude Code, Codex, Cursor, Ope
 - Stop when all branches are green or after 5 iterations
 - Emit one final summary comment listing what it added
 
-Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
-  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
+Draw an ASCII art diagram of the proposed skill architecture and explain the reasons of the design.
 ```
 
-Genesis returns a design + ASCII diagram. **Read it before coding.** That doc *is* your spec.
+Genesis returns an ASCII diagram + a design rationale. **Read both before coding.** That output *is* your spec — don't ask your harness to generate the skill until you've read what Genesis chose and why.
 
-### Reference architecture — what good looks like
+### What Genesis returned for this brief
 
-Below is the canonical shape Genesis should emit for `test-improver`. Yours may use different node names; what must hold is the **6-band shape** (Goal → Trigger → Inputs → Workflow → Verification → Output).
+The diagram below is rendered in Mermaid for GitHub readability — but Genesis emits ASCII into your chat. Same components, same edges. Yours may differ in naming / node count; what matters is whether the **architectural choices** below show up.
 
-```
-┌─ Goal ─────────────────────────────────────────────────────┐
-│  Raise vitest coverage on lib/cart.ts uncovered branches  │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Trigger ──────────────────────────────────────────────────┐
-│  "Use the test-improver skill on lib/cart.ts."             │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Inputs ───────────────────────────────────────────────────┐
-│  • lib/cart.ts                  (source under test)        │
-│  • tests/cart.test.ts           (existing vitest specs)    │
-│  • npm test --prefix zava-storefront   (deterministic      │
-│                                         oracle, vitest)    │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Workflow (loop, ≤5 iterations) ───────────────────────────┐
-│  1. read source + existing tests                           │
-│  2. identify an uncovered branch / error path              │
-│  3. generate one vitest case for it                        │
-│  4. run npm test (the oracle)                              │
-│  5. green? stop.  red? read failure, retry step 2.         │
-│  6. cap at 5 iterations to prevent runaway loops           │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Verification ─────────────────────────────────────────────┐
-│  • npm test green                                          │
-│  • new branches covered (vitest --coverage delta)          │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Output artifact ──────────────────────────────────────────┐
-│  • Edited tests/cart.test.ts (new vitest cases)            │
-│  • One-line summary: branches added + iters consumed       │
-└────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+  ANCHOR[TARGET ANCHOR<br/>B8 pin one lib file]
+  MEM[(PLAN MEMENTO B4<br/>target iter added residuals)]
+  PROBE[COVERAGE PROBE<br/>S7 vitest --coverage]
+  LIB[(zava-storefront/lib<br/>+ tests)]
+  GAP[GAP ANALYZER LLM<br/>scoped to target]
+  GEN[TEST GENERATOR LLM<br/>Vitest only - reject Jest]
+  WRITE[TEST WRITER<br/>S7 file write]
+  TFILES[(zava-storefront/tests)]
+  ORACLE[ORACLE RUNNER<br/>S7 + S4 npm test --prefix]
+  NPM[(npm + vitest)]
+  GATE{BRANCH GATE<br/>all green?}
+  RETRY{RETRY BUDGET<br/>iter less than 5?}
+  SUM[SUMMARY EMITTER<br/>B5 ACCEPTANCE OBSERVER]
+
+  ANCHOR --> MEM
+  MEM --> PROBE
+  PROBE ==> LIB
+  LIB ==> GAP
+  GAP --> GEN
+  GEN --> WRITE
+  WRITE ==> TFILES
+  WRITE --> ORACLE
+  ORACLE ==> NPM
+  NPM ==> GATE
+  GATE -->|yes| SUM
+  GATE -->|no| RETRY
+  RETRY -->|yes update memento| MEM
+  RETRY -->|no cap hit| SUM
+
+  classDef external fill:#eee,stroke:#666,stroke-dasharray: 4 3;
+  classDef internal fill:#fff,stroke:#000;
+  class LIB,TFILES,NPM external;
+  class ANCHOR,MEM,PROBE,GAP,GEN,WRITE,ORACLE,GATE,RETRY,SUM internal;
 ```
 
-> 💾 **Persist Genesis's output.** Don't lose it to chat scrollback. Save it to `.apm/skills/test-improver/DESIGN.md` (after step 2 below creates the folder) so future redesigns start from a real artifact.
+**Why this shape (rationale Genesis explained):**
+
+- **A9 SUPERVISED EXECUTION** with a bounded retry arm — chosen over A8 ALIGNMENT LOOP because convergence ("all branches in target file covered") is a **deterministic tool fact**, not goal alignment. The oracle is `npm test`, not the LLM.
+- **B4 PLAN MEMENTO** — target file, iteration counter, and added-tests ledger persist across rounds, reloaded each iteration. Without it, the loop drifts on its own short memory.
+- **B8 ATTENTION ANCHOR** — scope is locked to one `lib/` file. Long-context drift cannot widen the blast radius mid-loop.
+- **S7 DETERMINISTIC TOOL BRIDGE** wraps every consequential step — coverage probe, file write, `npm test`. The LLM never re-derives coverage from recall.
+- **Hard 5-iteration cap** — guards against UNBOUNDED LOOP. Cap-hit is treated as a real outcome (summary still emits), not silent failure.
+- **Out of scope (deliberate):** editing `lib/` source, multi-file targets, fixing pre-existing failing prod tests.
+
+> 💾 **Persist Genesis's output.** Don't lose it to chat scrollback. Save it (the ASCII + rationale) to `.apm/skills/test-improver/DESIGN.md` (after step 2 below creates the folder) so future redesigns start from a real artifact.
 
 ---
 
