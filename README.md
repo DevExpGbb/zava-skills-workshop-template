@@ -160,7 +160,6 @@ Each track guide takes you through Sections 2–6 with track-specific content. O
 | Path | Purpose |
 |---|---|
 | `apm.yml` · `apm.lock.yaml` | Workshop kits + Genesis pinned. `apm install` reads this. |
-| `.apm/skills/my-skill/SKILL.md` | **Placeholder marker.** Do not edit. Your harness will generate your real skill into a NEW folder under `.apm/skills/<your-skill>/` from the Genesis design. |
 | `.apm/skills/framework-modernizer/` | Track 4's worked example — eval-backed Express 4 → 5 reference skill |
 | `zava-storefront/` *(cloned, gitignored)* | The canonical [DevExpGbb/zava-storefront](https://github.com/DevExpGbb/zava-storefront) — Next.js 14 + Postgres commerce repo. Cloned in §0.2. Tracks 1–3 target it. |
 | `zava-storefront/security-fixtures/` | Standalone, intentionally-vulnerable npm package inside the storefront repo — Track 3's audit target. Not imported by the app. |
