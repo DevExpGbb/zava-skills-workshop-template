@@ -1,50 +1,59 @@
 ---
 name: my-skill
 description: >-
-  TODO — replace this placeholder with a one-line, action-verb description
-  of what your skill does. The Genesis assistant (pinned in apm.yml) will
-  help you scope this. See README "Build" section.
+  TODO — replace with a one-line, action-verb description of what your skill does.
+  Run `/genesis` in your IDE first; it will give you the spec to fill this in.
 license: UNLICENSED
-allowed-tools: Read, Grep, Glob, Bash(npm:*), Bash(node:*)
+allowed-tools: Read, Grep, Glob, Edit
 ---
 
-# My Skill
+# my-skill
 
-> **Workshop placeholder.** Delete everything below and write your skill
-> here. Keep it scoped, progressive, and PROSE-shaped (see the
-> `code-kit/instructions/prose-style.md` instruction pinned via apm.yml).
+> 🎨 **Blank canvas.** Don't write here yet.
 
-## When to use this skill
+## ✋ Stop — design first
 
-TODO — describe the trigger conditions. Be specific. "When to use" is
-how the orchestrator decides to call you.
+This is the workshop's hardest discipline: **don't open a text editor and start typing**. Open your harness (Copilot CLI / Claude Code / Codex / Cursor) and invoke Genesis on the skill you want to build.
 
-## What this skill does
+```
+/genesis I want a <track-name> skill. It must:
+- <constraint 1>
+- <constraint 2>
+- <constraint 3>
+```
 
-TODO — three to five short numbered steps. Each step should be
-imperative ("Run X", "Inspect Y", "Emit Z"). Defer detail to
-referenced files in the same skill folder rather than expanding inline.
+Genesis will produce a layout with sections, contracts, and an acceptance gate. **That's your spec.** Then come back here and write the SKILL.md by *implementing* it.
 
-## Outputs
+If you skip the design pass, you'll write a wall of text. Every skill that's failed to ship has skipped the design pass. Don't.
 
-TODO — what artifacts does this skill produce? Files? Comments? Labels?
+## 📁 Where to look
 
-## Examples
-
-TODO — at least one concrete invocation example. Trainees demoing your
-skill on `sample-app/` will appreciate this.
+- The track guide for your chosen path: [`docs/tracks/`](../../../docs/tracks/)
+- A working SKILL.md to peek at *after* you've drafted yours: [`docs/golden-examples/`](../../../docs/golden-examples/)
+- PROSE style rules pinned via `apm install`: `.github/instructions/prose-style.md` (lives under code-kit)
 
 ---
 
-### Suggested skills to build during the workshop
+## 🧱 SKILL.md skeleton
 
-- **test-improver** — read `sample-app/src/calculator.ts`, generate the
-  missing tests in `sample-app/tests/calculator.test.ts`, run `npm test`,
-  iterate until green.
-- **docs-generator** — read `sample-app/src/calculator.ts`, emit a
-  `sample-app/README.md` with usage examples.
-- **dependency-auditor** — scan `sample-app/package.json` for outdated
-  or vulnerable deps and emit a remediation comment.
+When you're ready, replace this entire file with your skill. The minimum sections:
 
-Pick one. Build it. Then run it via the `gh aw` workflow at
-`.github/workflows/my-workflow.md` to see the inner→outer loop transition.
+### When to use this skill
+
+> Specific trigger conditions. Be narrow. "When to use" is how the orchestrator decides to call you.
+
+### What this skill does
+
+> 3–7 imperative steps. Defer detail to referenced files in the same skill folder.
+
+### Outputs
+
+> Files? Comments? Labels? Be explicit.
+
+### Constraints
+
+> What this skill must *not* do. (Often more important than what it does.)
+
+### Examples
+
+> At least one concrete invocation example.
