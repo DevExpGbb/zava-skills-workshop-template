@@ -21,9 +21,9 @@ This Skill targets exported **functions** only. Type aliases, interfaces, and zo
 
 Open these:
 
-- [`zava-storefront/lib/cart.ts`](../../zava-storefront/lib/cart.ts) — **5 exported functions** (8 named exports total: 3 are types/schemas, out of scope), zero JSDoc.
-- [`zava-storefront/lib/orders.ts`](../../zava-storefront/lib/orders.ts) — **5 exported functions** (8 named exports total), zero JSDoc.
-- [`zava-storefront/lib/search.ts`](../../zava-storefront/lib/search.ts) — **2 exported functions** (3 named exports total), zero JSDoc.
+- [`zava-storefront/lib/cart.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/lib/cart.ts) — **5 exported functions** (8 named exports total: 3 are types/schemas, out of scope), zero JSDoc.
+- [`zava-storefront/lib/orders.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/lib/orders.ts) — **5 exported functions** (8 named exports total), zero JSDoc.
+- [`zava-storefront/lib/search.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/lib/search.ts) — **2 exported functions** (3 named exports total), zero JSDoc.
 
 Now ask your AI chat assistant (no Skill) the naïve prompt:
 

@@ -19,9 +19,9 @@
 
 Open these three files:
 
-- [`zava-storefront/lib/cart.ts`](../../zava-storefront/lib/cart.ts) · `addItem`, `applyDiscount`, `computeTax`, `totalize`
-- [`zava-storefront/lib/orders.ts`](../../zava-storefront/lib/orders.ts) · `createOrder`, `findOrder`, `fulfillmentMessage`
-- [`zava-storefront/tests/cart.test.ts`](../../zava-storefront/tests/cart.test.ts) · note the comment block at the bottom listing **uncovered branches**
+- [`zava-storefront/lib/cart.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/lib/cart.ts) · `addItem`, `applyDiscount`, `computeTax`, `totalize`
+- [`zava-storefront/lib/orders.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/lib/orders.ts) · `createOrder`, `findOrder`, `fulfillmentMessage`
+- [`zava-storefront/tests/cart.test.ts`](https://github.com/DevExpGbb/zava-storefront/blob/workshop-v1/tests/cart.test.ts) · note the comment block at the bottom listing **uncovered branches**
 
 Now ask your AI chat assistant (no Skill, no extra context) the naïve prompt:
 
