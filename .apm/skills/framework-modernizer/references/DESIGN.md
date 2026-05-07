@@ -98,13 +98,15 @@ No external modules required → no module-system adapter needed.
 
 ## Step 5 — PROSE compliance check
 
-| PROSE primitive | What plays this role here |
+PROSE = **P**rogressive Disclosure / **R**educed Scope / **O**rchestrated Composition / **S**afety Boundaries / **E**xplicit Hierarchy ([handbook ch.12](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html#the-constraint-model)). One row per constraint:
+
+| PROSE constraint | How this skill complies |
 |---|---|
-| **P**rompt | The user's "migrate to express 5" message. |
-| **R**ules | `prose-style.md` (from code-kit) — pinned via apm. The classifier rubric is also a Rule, but skill-local. |
-| **O**rchestration | Single skill, no sub-orchestrator. PIPELINE is the orchestration shape. |
-| **S**kills | This one. |
-| **E**ngineering (context) | The catalog file IS the engineered context. The skill doesn't reason from training data about Express 5 — it grounds in the catalog. |
+| **P**rogressive Disclosure | `SKILL.md` is ~80 lines (when-to-use + 5 steps). Catalog, rubric and plan template live under `references/` and are only loaded when the skill is invoked — not at every chat turn. |
+| **R**educed Scope | Single capability: "produce a triaged migration plan for one named framework upgrade". Doesn't refactor, doesn't open PRs, doesn't bump anything else. Anything outside that is a separate skill. |
+| **O**rchestrated Composition | PIPELINE shape: `discover repo footprint → scan catalog → classify per BC-NNN → emit plan`. Each step is a deterministic call (Grep / Read / templated Edit) wrapped by the LLM. Composes cleanly with `code-kit` (style on the plan output) and `review-kit` (review of the resulting PR). |
+| **S**afety Boundaries | `allowed-tools: Read, Grep, Glob, Edit(plan.md)` only — cannot touch source. Catalog is the **only** ground truth for breaking changes; "Constraints" bans inventing BC-NNNs from training data. Eval fixture verifies every finding cites a BC-NNN that exists in the catalog. |
+| **E**xplicit Hierarchy | Repo `code-kit` rules > skill-local rubric > skill instructions > prompt. The skill never overrides the repo's house style; it inherits it. |
 
 **Hallucination countermeasure:** The "Constraints" section bans inventing breaking changes from training data. The catalog is the only source of truth. Eval fixture verifies findings cite a BC-NNN.
 

@@ -102,6 +102,32 @@ Expect a report listing at minimum:
 - Bump recommendations split safe / breaking
 - No modifications to any `package.json`
 
+### Demonstrate MANUAL-REVIEW classification
+
+The three baked-in fixtures all have fixes (`safe-bump` / `breaking-bump`). To exercise the third branch — `manual-review` (`fixAvailable === false`) — feed the Skill a synthetic snippet:
+
+```bash
+cat <<'EOF' > /tmp/manual-review-fixture.json
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "abandoned-pkg": {
+      "severity": "high",
+      "range": "*",
+      "fixAvailable": false
+    }
+  },
+  "metadata": { "vulnerabilities": { "high": 1, "critical": 0, "moderate": 0, "low": 0 } }
+}
+EOF
+```
+
+Then in your harness:
+
+> "Use the dependency-auditor skill on the npm-audit JSON at `/tmp/manual-review-fixture.json`."
+
+Expected output: `abandoned-pkg` lands under **Manual review**, with rationale `fixAvailable === false — no automated remediation; investigate upstream`. If it lands under safe-bump or breaking-bump instead, your classifier rubric is mis-ordered — fix the SKILL.md and retry. This is exactly the kind of off-happy-path case the eval fixture in §Validate covers; **see it once by hand here so you trust the eval afterwards**.
+
 ---
 
 ## 📦 Package + publish (15 min)

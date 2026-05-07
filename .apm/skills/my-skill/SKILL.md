@@ -10,6 +10,9 @@ allowed-tools: Read, Grep, Glob, Edit
 # my-skill
 
 > 🎨 **Blank canvas.** Don't write here yet.
+>
+> **After running `/genesis`, paste the design summary** (the section labelled "Design") **and the ASCII architecture diagram into a fenced block at the top of this file** — *before* you delete this instruction block. That makes the skill self-documenting: the next maintainer can read the design without re-running Genesis.
+> *Alternative:* save it to `.apm/skills/<your-skill>/DESIGN.md` and link it from frontmatter.
 
 ## ✋ Stop — design first
 

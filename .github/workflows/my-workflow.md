@@ -18,6 +18,9 @@ permissions:
 
 network: defaults
 
+# `gh aw` requires a single engine id at compile time. We use `copilot` here as
+# the demo runner because it's available to every harness user with `gh auth`.
+# To switch engines (e.g. claude, codex), change this id and re-run `gh aw compile`.
 engine:
   id: copilot
 

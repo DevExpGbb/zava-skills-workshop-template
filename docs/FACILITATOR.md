@@ -28,7 +28,7 @@ cd /tmp/wf-preflight
 
 # Setup chain — the same one trainees run:
 apm install
-git clone https://github.com/DevExpGbb/zava-storefront.git zava-storefront
+git clone --branch workshop-v1 --depth 1 https://github.com/DevExpGbb/zava-storefront.git zava-storefront
 npm install --prefix zava-storefront
 npm test --prefix zava-storefront                 # → 7/7 green
 node .apm/skills/framework-modernizer/evals/run.js   # → 8/8 match

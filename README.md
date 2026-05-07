@@ -11,7 +11,7 @@
 
 ## 🤔 The problem this template solves
 
-You've used Copilot. You've felt the ceiling:
+You've used an AI coding assistant. You've felt the ceiling:
 
 - The same task gives **different output every time**
 - Your team's conventions get **silently ignored**
@@ -73,11 +73,13 @@ Click the green **"Use this template"** button at the top of this repo → **"Cr
 ### 2. Install dependencies
 
 ```bash
-apm install                        # workshop kits + Genesis design assistant (pinned to v0.1.0)
+cd <your-forked-workshop-repo>          # the repo you generated in §1, freshly cloned
 
-# Clone the canonical target app (zava-storefront, a real DevExpGbb repo) into this workshop dir.
+apm install                             # workshop kits + Genesis design assistant (pinned to v0.1.0)
+
+# Clone the canonical target app at the pinned workshop baseline (tsc-clean, tests 7/7 green).
 # It's gitignored — your generated workshop repo stays clean.
-git clone https://github.com/DevExpGbb/zava-storefront.git zava-storefront
+git clone --branch workshop-v1 --depth 1 https://github.com/DevExpGbb/zava-storefront.git zava-storefront
 npm install --prefix zava-storefront    # Next.js + Postgres commerce slice (the workshop target)
 ```
 
@@ -91,6 +93,12 @@ npm install --prefix zava-storefront    # Next.js + Postgres commerce slice (the
 ```bash
 # CLI smoke test (no network):
 apm list                           # should list the 5 deps above
+# Expected (abridged):
+#   secure-baseline  v0.1.x  (DevExpGbb/secure-baseline)
+#   code-kit         v0.1.x  (DevExpGbb/code-kit)
+#   ideate-kit       v0.1.x  (DevExpGbb/ideate-kit)
+#   review-kit       v0.1.x  (DevExpGbb/review-kit)
+#   genesis          v0.1.0  (DevExpGbb/genesis)
 ls .agents/skills/genesis          # should exist (proves apm install completed)
 
 # Auth + repo permissions (you'll need write access for tags/releases/labels):
