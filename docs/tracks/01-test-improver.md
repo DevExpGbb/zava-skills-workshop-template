@@ -200,37 +200,75 @@ The [release workflow](../../.github/workflows/release.yml) validates → packs 
 
 ---
 
-## 🌐 Automate (15 min)
+## 🌐 Automate (15 min) — run your skill in CI
 
-Workshop scaffold (do these in order — silent failures otherwise):
+The skill you just released is now a portable artifact. Time to make your own CI a consumer of it.
+
+The template ships a starter [gh-aw](https://github.github.com/gh-aw/) workflow at [`.github/workflows/my-workflow.md`](../../.github/workflows/my-workflow.md). gh-aw workflows are markdown: YAML frontmatter for triggers + permissions, then a natural-language prompt the agent runs. Replace the file's contents with this — note the `packages:` line pins the release tag you just pushed:
+
+```markdown
+---
+on:
+  pull_request:
+    types: [labeled]
+    paths: ['zava-storefront/lib/**']
+  workflow_dispatch:
+  roles: [admin, maintainer, write]
+
+if: |
+  (github.event_name == 'pull_request' && github.event.label.name == 'run-test-improver')
+  || github.event_name == 'workflow_dispatch'
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+network: defaults
+
+engine:
+  id: copilot
+
+# Pin the skill you just released. apm-action will download this tarball
+# at run-time and make `test-improver` available to the agent below.
+imports:
+  - uses: shared/apm.md
+    with:
+      packages:
+        - <your-org>/<your-repo>#v0.1.0-test-improver
+
+safe-outputs:
+  add-comment:
+    max: 1
+
+timeout-minutes: 15
+---
+
+# Run test-improver
+
+You are running the **`test-improver`** Agent Skill against this repository's
+`zava-storefront/` directory. Follow its `SKILL.md` exactly. Post a 3–5 bullet
+summary of files read, files modified, tests run, and follow-ups via `add-comment`.
+
+Do not modify files outside `zava-storefront/`. Do not merge or label the PR.
+```
+
+Then create the trigger label, compile, and push:
 
 ```bash
-# 1 · Create the trigger label first. Without it, the workflow's `on: labeled`
-#     stanza never fires and you'll think your Skill is broken.
 gh label create run-test-improver --color B0E0FF --description "Run the test-improver skill on this PR"
-
-# 2 · Edit .github/workflows/my-workflow.md. Concrete diff against the scaffold:
-#
-#       on:
-#         pull_request:
-#     -     types: [labeled]
-#     +     types: [labeled]
-#     +     paths: ['zava-storefront/lib/**']
-#         workflow_dispatch:
-#         roles: [admin, maintainer, write]
-#
-#       if: |
-#     -   (github.event_name == 'pull_request' && github.event.label.name == 'run-my-skill')
-#     +   (github.event_name == 'pull_request' && github.event.label.name == 'run-test-improver')
-#         || github.event_name == 'workflow_dispatch'
-
-# 3 · Compile (gh aw produces a real .lock.yml from the .md you edited):
-gh aw compile      # → .github/workflows/my-workflow.lock.yml  (see https://github.github.com/gh-aw/reference/faq/#what-is-a-workflow-lock-file for why both files exist)
-git add .github/workflows/ && git commit -m "ci: compile test-improver workflow"
+gh aw compile      # → .github/workflows/my-workflow.lock.yml
+git add .github/workflows/ && git commit -m "ci: wire test-improver in CI"
 git push
 ```
 
 Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-test-improver`, and watch your skill execute on the PR — that's the inner→outer loop transition.
+
+> 💡 **The release tag you just pushed is what your CI pins.** The `apm pack` → release tarball → `imports.with.packages` chain is the same mechanism another team would use to consume your skill — your CI just happens to be one of those consumers. Bump the tag, bump the pin: same flow as any versioned dependency.
+
+> 💡 **What is `shared/apm.md`?** A vendored gh-aw [shared workflow component](https://microsoft.github.io/apm/integrations/gh-aw/) that turns `packages:` into a real `apm install` step in your compiled workflow. The template ships it pre-vendored at [`.github/workflows/shared/apm.md`](../../.github/workflows/shared/apm.md). If you ever start a workflow from scratch in another repo, copy it once: `mkdir -p .github/workflows/shared && curl -sSL https://raw.githubusercontent.com/microsoft/apm/main/.github/workflows/shared/apm.md > .github/workflows/shared/apm.md`. See [`gh aw` reference: workflow lock file](https://github.github.com/gh-aw/reference/faq/#what-is-a-workflow-lock-file) for why the `.md` and `.lock.yml` both ship.
+
+> 💡 **Compose with kit primitives.** Add more lines under `packages:` — e.g., `DevExpGbb/zava-agent-config/plugins/review-kit#v5.0.1` to also load review-kit's panel skill alongside your own. Same import block, more skills available to the agent.
 
 ---
 
