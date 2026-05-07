@@ -32,17 +32,7 @@ By the end of this workshop, you'll have:
 4. The same skill **executing in CI** on PRs via [`gh aw`](https://github.com/githubnext/gh-aw)
 5. A **consumer repo** pinning your skill via `apm` and getting the value automatically
 
-You will have shipped the entire **PROSE** loop end to end:
-
-| | Stands for | Where in this workshop |
-|---|---|---|
-| **P** | Prompts | The triggering messages in the workflow |
-| **R** | Rules | Pinned style files via `apm install` |
-| **O** | Orchestration | The skill itself coordinates read → analyze → emit |
-| **S** | Skills | What you build |
-| **E** | Engineering (Context) | The `.github/instructions/` you compose with |
-
-> 📚 **Theory:** [PROSE Framework](https://github.com/danielmeppiel/awesome-ai-native) · [Genesis design patterns](https://github.com/danielmeppiel/genesis) · [APM marketplace](https://github.com/microsoft/apm)
+> 📚 **Theory:** [Genesis](https://github.com/danielmeppiel/genesis) compresses the design discipline behind the patterns you'll use here. For the underlying architecture, see *The Agentic SDLC Handbook* — [Ch.4 The Reference Architecture](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html) and [Ch.18 Architectural Patterns Rosetta Stone](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html).
 
 ---
 
@@ -51,7 +41,7 @@ You will have shipped the entire **PROSE** loop end to end:
 | Section | Focus | Duration | Format |
 |---|---|---|---|
 | **0 · Setup** | Use template, install deps, verify CLIs | 10 min | Individual |
-| **1 · Pick your track** | One of three | 5 min | Choose |
+| **1 · Pick your track** | One of four | 5 min | Choose |
 | **2 · Design with Genesis** | Spec your skill *before* you write it | 10 min | Hands-on |
 | **3 · Build locally** | Author `SKILL.md`, drive it on `sample-app/` | 30 min | Hands-on |
 | **4 · Validate + publish** | `gh skill publish --dry-run` → tag → release | 15 min | Hands-on |
@@ -106,6 +96,7 @@ Each track teaches the same loop on different content. Pick **ONE** based on wha
 | 🧪 [**1 · `test-improver`**](docs/tracks/01-test-improver.md) | Find untested branches in `calculator.js`, generate tests, iterate with `npm test` until green | Devs who want to raise coverage in legacy code |
 | 📖 [**2 · `docs-generator`**](docs/tracks/02-docs-generator.md) | Read `inventory.js`, emit JSDoc + a README usage section without inventing behavior | Devs documenting brownfield modules |
 | 🛡️ [**3 · `dependency-auditor`**](docs/tracks/03-dependency-auditor.md) | Run `npm audit`, classify SAFE vs BREAKING upgrades, emit a remediation plan as PR comment | Security-minded devs working in dep-heavy repos |
+| 🔄 [**4 · `framework-modernizer`**](docs/tracks/04-framework-modernizer.md) | Read a finished, eval-backed reference skill (Express 4 → 5) — then fork the pattern for your own framework migration | Devs facing a major-version upgrade (React, Next, Spring Boot, .NET…) |
 
 > 💡 Stuck choosing? Pick **`test-improver`** — it has the cleanest validation loop (`npm test` is the oracle).
 
@@ -149,7 +140,6 @@ That's the difference between a Copilot prompt and an Agent Skill: **distributio
 ## 🎓 What you took home
 
 - **Design before code.** Genesis isn't a luxury — it's the architecture pass that prevents the monolith.
-- **PROSE is the spec.** Every primitive (Prompts / Rules / Orchestration / Skills / Engineering) has a job. No primitive does another's work.
 - **Skills ship like packages.** Tag → release → consumers pin. Same lifecycle as npm or pip.
 - **Inner == outer loop.** Whatever runs in your IDE runs the same way in CI. No translation layer.
 
@@ -157,10 +147,11 @@ That's the difference between a Copilot prompt and an Agent Skill: **distributio
 
 ## 🔗 Going further
 
-- Read the [PROSE Framework docs](https://github.com/danielmeppiel/awesome-ai-native) for the full theory
-- Browse the [APM marketplace](https://github.com/microsoft/apm) for skills, instructions, personas to pin
-- Use `/genesis` in your harness on real problems — not just workshop ones
-- Open issues / send PRs on [zava-workshop-kit](https://github.com/DevExpGbb/zava-workshop-kit) — that's the deployer-facing entry point for running this workshop in your own org
+- *The Agentic SDLC Handbook* — full theory behind this workshop. Start with [Ch.4 The Reference Architecture](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html), then [Ch.18 Architectural Patterns Rosetta Stone](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html).
+- [`microsoft/apm`](https://github.com/microsoft/apm) and the [APM docs](https://microsoft.github.io/apm/) — the package manager you used to install kits and ship your skill.
+- [`microsoft/apm-action`](https://github.com/microsoft/apm-action) — the GitHub Action for wiring `apm install` into any workflow (the building block under `shared/apm.md`).
+- Use `/genesis` in your harness on real problems — not just workshop ones.
+- Open issues / send PRs on [zava-workshop-kit](https://github.com/DevExpGbb/zava-workshop-kit) — that's the deployer-facing entry point for running this workshop in your own org.
 
 ---
 
