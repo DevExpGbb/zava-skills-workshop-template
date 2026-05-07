@@ -7,6 +7,8 @@
 [![gh-aw](https://img.shields.io/badge/gh--aw-required-blue)](https://github.com/githubnext/gh-aw)
 [![Duration](https://img.shields.io/badge/Duration-90--120%20min-orange)]()
 
+> **Scope:** this workshop targets **GitHub** (incl. GitHub Enterprise Cloud) + **GitHub Copilot Business/Enterprise**. The CI automation track uses `gh aw` workflows with `engine: copilot`. It is an **experiment / hands-on learning kit**, not a production-grade enterprise rollout — for that, you'd add an engine-abstraction layer, GitHub App auth (vs. PATs), SLSA attestation, prompt audit logging, and isolate the deliberate `poisoned-tracing-skill` fixture into a sandbox subaccount. None of those are in scope here.
+
 ---
 
 ## 🤔 The problem this template solves
