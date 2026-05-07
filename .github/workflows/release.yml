@@ -21,7 +21,8 @@ name: release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'        # plain semver: v0.1.0
+      - 'v*.*.*-*'      # per-track suffix: v0.1.0-test-improver (workshop pattern)
 
 permissions:
   contents: write   # required to create the release + upload assets
@@ -44,7 +45,9 @@ jobs:
       - name: Extract release metadata
         id: meta
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          # Strip leading 'v' and any per-track suffix (e.g. v0.1.0-test-improver → 0.1.0)
+          ref="${GITHUB_REF_NAME#v}"
+          version="${ref%%-*}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           name=$(grep -E '^name:' apm.yml | head -1 | awk '{print $2}' | tr -d '"')
           echo "name=$name" >> "$GITHUB_OUTPUT"
@@ -54,7 +57,7 @@ jobs:
           tag_ver="${{ steps.meta.outputs.version }}"
           apm_ver=$(grep -E '^version:' apm.yml | head -1 | awk '{print $2}' | tr -d '"')
           if [ "$tag_ver" != "$apm_ver" ]; then
-            echo "::error::Tag v$tag_ver does not match apm.yml version $apm_ver"
+            echo "::error::Tag version $tag_ver does not match apm.yml version $apm_ver (tags may be suffixed e.g. v0.1.0-skill-name; the leading semver must match)"
             exit 1
           fi
           echo "Version aligned at v$tag_ver"

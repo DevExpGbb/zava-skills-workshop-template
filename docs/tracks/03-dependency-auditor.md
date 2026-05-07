@@ -1,34 +1,42 @@
 # Track 3 · `dependency-auditor`
 
-> Build a skill that runs `npm audit` against `sample-app/`, parses the JSON, ranks issues by severity, and emits a remediation plan as a PR comment — with safe-bump vs. breaking-bump split.
+> **You are not fixing the app. You are authoring a Skill** that runs `npm audit` against `target-app/security-fixtures/`, parses the JSON, ranks issues by severity, and emits a remediation plan as a PR comment — with safe-bump vs. breaking-bump split.
 
-⏱️ **45 min** · 🎯 **PROSE focus:** **O**rchestration (read → analyze → plan → emit)
+⏱️ **90 min**
+
+---
+
+## 📚 Theory anchor
+
+- **Live:** [Architectural Patterns Rosetta Stone — *Triage / classifier patterns*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+
+**Local fallback (3 sentences):** A dependency auditor is a *classifier with a fixed schema*. *Orchestrated Composition* applies — your Skill calls a deterministic tool (`npm audit --json`), then the LLM does only what humans hate doing: reading 50 advisories and producing a triaged plan. *Safety Boundaries* matter twice: never modify `package.json` directly (recommend, don't apply); never invent CVE IDs.
+
+> ⚠️ The audit runs against `target-app/security-fixtures/`, a **standalone, intentionally-vulnerable npm package** that's not imported by the application. See its [README](../../target-app/security-fixtures/README.md).
 
 ---
 
 ## 🔍 Discover the problem
 
+Run the raw tool yourself first. Use `--prefix` so cwd doesn't matter (and so you can never accidentally install fixture deps into the real app):
+
 ```bash
-cd sample-app && npm audit
+npm install --prefix target-app/security-fixtures --no-audit --no-fund
+npm audit --prefix target-app/security-fixtures
 ```
 
-You'll see real CVEs:
+You'll see a wall of advisories — `lodash` prototype pollution, `axios` SSRF, `minimist`. Now ask your AI chat assistant:
 
-- `lodash@4.17.4` → prototype pollution (CVE-2019-10744)
-- `axios@0.21.0` → SSRF + ReDoS
-- `minimist@0.0.8` → prototype pollution (×2)
-
-Now ask Copilot Chat (no skill):
-
-> "Fix the npm audit issues in sample-app/"
+> "Fix the npm audit issues."
 
 Observe:
 
-- Does it tell you which fixes are safe (patch/minor) vs breaking (major)?
-- Does it show you the upstream changelog risk?
-- Does it offer a single `npm audit fix` (which may break) vs. a tracked plan?
+- It might suggest `npm audit fix --force` (potentially breaking).
+- It rarely splits *safe bumps* from *major-version bumps*.
+- It doesn't produce something you can paste into a change-management ticket.
 
-**Auditing is mechanical. Remediation is judgment.** A skill can do the mechanical part deterministically and hand judgment to humans with a structured plan.
+A Skill closes that gap.
 
 ---
 
@@ -36,65 +44,121 @@ Observe:
 
 ```
 /genesis I want a dependency-auditor skill. It must:
-- Run `npm audit --json` in sample-app/ and parse the output
-- Group findings by severity (critical / high / moderate / low)
-- For each finding, classify the upgrade as: SAFE (patch/minor, no API change) or BREAKING (major version)
-- Emit a markdown remediation plan: numbered list, severity badge, current version → recommended version, "safe to auto-apply" or "needs review"
-- Write the plan to a file (e.g. `audit-report.md`) AND comment it on the PR if running in CI
-- Never auto-apply fixes — humans approve
+- Run `npm audit --json` in target-app/security-fixtures/
+- Parse the JSON and rank vulnerabilities by severity (critical > high > moderate > low)
+- For each entry under the top-level `vulnerabilities` object, classify the recommendation:
+    safe-bump      → fixAvailable is an object AND fixAvailable.isSemVerMajor === false
+    breaking-bump  → fixAvailable.isSemVerMajor === true
+    manual-review  → fixAvailable === false (or missing)
+- Emit a markdown report: top 5 critical findings, recommended bumps, and a "manual review" list
+- Refuse to modify package.json itself — the Skill's output is a recommendation, not a code change
+
+Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
+  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
 ```
 
-Genesis will probably suggest **two agents**: an `audit-runner` (mechanical) and a `remediation-planner` (synthesis). That's the **B1 Fan-Out + Synthesizer** pattern — keep them separate so the synthesizer doesn't inherit the runner's noise.
+> 💡 **Schema reference (npm 10+).** `npm audit --json` returns `{ auditReportVersion, vulnerabilities, metadata }`. Each entry under `vulnerabilities` exposes `severity`, `range` (vulnerable range), and `fixAvailable` — either `false`, or `{ name, version, isSemVerMajor }`. Classify on `fixAvailable`, not on legacy `patched_versions`.
 
 ---
 
-## 🛠️ Build (20 min)
+## 🛠️ Build (25 min)
 
-In `.apm/skills/my-skill/SKILL.md` (rename to `dependency-auditor/`):
+Open `.apm/skills/my-skill/SKILL.md` and fill it in. Then rename the **folder**:
 
-**Hard rules:**
+```bash
+git mv .apm/skills/my-skill .apm/skills/dependency-auditor
+```
 
-- **`allowed-tools`:** `Bash(npm audit:*), Read, Edit` — narrow Bash to just `npm audit` to prevent the skill from running anything else.
-- **"When to use":** "When the user asks for a dependency security check, OR a PR touches `package.json` / `package-lock.json`."
-- **Output schema:** Define it. Make every report look the same — humans calibrate to one shape.
+> 💡 **Skill discovery binds on the frontmatter `name:` field** (`name: dependency-auditor`). The folder name is convention only — but keep them aligned to avoid grep confusion later.
 
-📁 Reference: [`docs/golden-examples/dependency-auditor.SKILL.md`](../golden-examples/dependency-auditor.SKILL.md)
+**Ship-check rules:**
+
+- `allowed-tools`: `Read, Bash(npm:*), Bash(jq:*)` — no `Edit`. **The Skill cannot modify code.**
+- "When to use": triggered explicitly or on `package.json` PRs. Refuse if no `package.json` is present.
+- Output schema (be strict):
+  ```
+  ## Audit summary (security-fixtures)
+  - 🔴 critical: N · 🟠 high: N · 🟡 moderate: N · 🟢 low: N
+
+  ## Top findings
+  | severity | package | current | patched | bump-kind |
+  |---|---|---|---|---|
+
+  ## Manual review
+  - <package>: <why no auto-recommendation>
+  ```
+
+📁 Stuck? See [`docs/golden-examples/dependency-auditor.SKILL.md`](../golden-examples/dependency-auditor.SKILL.md).
 
 ---
 
 ## ✅ Validate locally (5 min)
 
-> "Use the dependency-auditor skill on sample-app/"
+> "Use the dependency-auditor skill on `target-app/security-fixtures/`."
 
-Expected output: a markdown report with 3 vulnerabilities, severity-ranked, with a clear "safe to auto-apply: NO — minimist 0.0.8 → 1.2.8 is a major version bump; review CHANGELOG before merging."
+Expect a report listing at minimum:
 
-Sanity check:
-
-- Does the report match what `npm audit` says?
-- Are the SAFE vs BREAKING calls correct (semver-aware)?
-- Could a non-security-engineer act on this report?
+- 1 high or critical advisory each for `lodash`, `axios`, `minimist`
+- Bump recommendations split safe / breaking
+- No modifications to any `package.json`
 
 ---
 
-## 📦 Package + publish (10 min)
+## 📦 Package + publish (15 min)
 
 ```bash
 apm run validate
-git tag v0.1.0 && git push origin main --tags
+git add . && git commit -m "feat: dependency-auditor skill v0.1.0"
+
+# If you ran multiple tracks in the same repo, scope the tag:
+git tag v0.1.0-dependency-auditor   # or just v0.1.0 if this is your only track
+git push origin main --tags
+```
+
+> 💡 **Tag collision warning.** Every track guide says `git tag v0.1.0`. If you re-run or run multiple tracks in the same repo, scope per-track (`v0.1.0-dependency-auditor`) or delete the old tag first.
+
+---
+
+## 🌐 Automate (15 min)
+
+Wire the workflow to run on PRs touching any `package.json`. The Skill posts the audit report as a PR comment. **It does not auto-merge or auto-bump.** That's the auditor's whole point.
+
+```bash
+# 1 · Create the trigger label first (silent failure otherwise):
+gh label create run-dependency-auditor --color FFB0B0 --description "Run the dependency-auditor skill on this PR"
+
+# 2 · Edit .github/workflows/my-workflow.md to:
+#     on:
+#       pull_request:
+#         types: [labeled]
+#         paths: ['**/package.json']
+#     # with an `if: github.event.label.name == 'run-dependency-auditor'` guard.
+
+# 3 · Compile + commit:
+gh aw compile
+git add .github/workflows/ && git commit -m "ci: compile dependency-auditor workflow"
+git push
 ```
 
 ---
 
-## 🌐 Automate (5 min)
+## 🌍 Platform payoff (your Skill in someone else's repo)
 
-Adapt `my-workflow.md` to trigger on PRs touching `package.json` (no label needed — file-path trigger). Compile, commit.
+After §6 of the README, a partner team can pin your auditor in *their* repo:
 
-Now any PR that bumps a dep gets an auditor comment automatically. You've turned a stale chore into a PR-time guardrail.
+```yaml
+# their apm.yml
+dependencies:
+  apm:
+    - <your-org>/<your-repo>#v0.1.0-dependency-auditor
+```
+
+`apm install` and they have the same `SKILL.md`, the same read-only `allowed-tools`, the same report schema. Their CI now produces audit reports identical in structure to yours — that's how a skill becomes shared platform capability rather than a single-repo script.
 
 ---
 
 ## 🎓 What you learned
 
-- **Tight `allowed-tools`** keeps a skill from drifting into shell-execution risks.
-- **Two-agent split** (runner + planner) keeps signal high — same content, cleaner output.
-- **Skills don't decide; they propose.** The auditor never auto-applies fixes — humans approve.
+- **Classifier Skills compose with deterministic tools.** The LLM does the triage, not the scanning.
+- **`allowed-tools` is the strongest safety lever.** No `Edit` → can't modify `package.json` → can't ship a breaking bump by accident.
+- **Output schemas matter.** A predictable report is the difference between "useful" and "another bot comment."

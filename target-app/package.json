@@ -1,0 +1,30 @@
+{
+  "name": "target-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workshop target app — small Next.js + Postgres commerce slice. Snapshot of zava-storefront extended with cart/checkout/orders/session. Deliberate gaps for the workshop tracks to exercise.",
+  "scripts": {
+    "preinstall": "node ./scripts/guard-deps.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "audit": "npm audit --omit=dev"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "pg": "8.12.0",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.2",
+    "@types/pg": "8.11.6",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "typescript": "5.5.3",
+    "vitest": "1.6.0"
+  }
+}

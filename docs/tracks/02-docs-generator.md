@@ -1,106 +1,184 @@
 # Track 2 · `docs-generator`
 
-> Build a skill that reads `sample-app/src/inventory.js`, detects undocumented exports, and emits JSDoc + a README usage section — without inventing behavior.
+> **You are not fixing the app. You are authoring a Skill** that reads `target-app/lib/*.ts`, detects undocumented exported **functions**, and emits JSDoc + a README usage section — without inventing behavior.
 
-⏱️ **45 min** · 🎯 **PROSE focus:** **E**ngineering (context) + **S**kills
+⏱️ **90 min**
+
+---
+
+## 📚 Theory anchor
+
+- **Live:** [The Reference Architecture — *Documentation as a closed loop*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+
+**Local fallback (3 sentences):** A docs-generator Skill is a discipline test for the PROSE constraint *Safety Boundaries* — the agent **must not** invent behavior that isn't in the source, even when the source is sparse. *Progressive Disclosure* shapes the output: short JSDoc above each export, then a single "Usage" section with one minimal example each. The win: the same Skill produces the same docs whether a junior or a senior triggers it.
 
 ---
 
 ## 🔍 Discover the problem
 
-Open [`sample-app/src/inventory.js`](../../sample-app/src/inventory.js).
+This Skill targets exported **functions** only. Type aliases, interfaces, and zod schemas are out of scope — that scope decision lives in the Skill's `When to use` section and is enforced by the oracle in §5.
 
-Notice:
+Open these:
 
-- Six exports (`restock`, `reserve`, `level`, `snapshot`, `lowStock`, `reset`)
-- **Zero JSDoc**, no README, no inline explanation
-- `reserve` returns a boolean (success/fail), but you can't tell from the signature
-- `restock` throws on non-positive `qty` — silent contract
+- [`target-app/lib/cart.ts`](../../target-app/lib/cart.ts) — **5 exported functions** (8 named exports total: 3 are types/schemas, out of scope), zero JSDoc.
+- [`target-app/lib/orders.ts`](../../target-app/lib/orders.ts) — **5 exported functions** (8 named exports total), zero JSDoc.
+- [`target-app/lib/search.ts`](../../target-app/lib/search.ts) — **2 exported functions** (3 named exports total), zero JSDoc.
 
-Now ask Copilot Chat (no skill, no context):
+Now ask your AI chat assistant (no Skill) the naïve prompt:
 
-> "Add JSDoc to inventory.js"
+> "Document `lib/cart.ts`."
 
 Observe:
 
-- Does it invent return-type semantics?
-- Does it document the throw-on-zero contract for `restock`?
-- Would two developers get the same JSDoc style?
+- Sometimes it adds JSDoc. Sometimes prose comments. Sometimes both.
+- It frequently invents return-shape examples that don't match the actual code.
+- It sometimes documents the zod schema as if it were a function.
+- Two runs → two voices.
 
-**Documentation drift is more expensive than test drift** — readers trust docs even when they're wrong. A skill makes docs deterministic.
+That drift is the failure mode.
 
 ---
 
-## 🧠 Design with Genesis (5 min)
+## 🧠 Design with Genesis (10 min)
 
 ```
 /genesis I want a docs-generator skill. It must:
-- Read all exports from sample-app/src/inventory.js
-- Detect missing JSDoc
-- Generate JSDoc with @param, @returns, @throws sections
-- NEVER invent behavior — read the function body to derive @throws and return type
-- Use Google-style JSDoc (consistent across team)
-- Append a "Usage" section to sample-app/README.md with one example per export
-- Stop after the first pass; humans review the diff
+- Target a single TypeScript file under target-app/lib/
+- For every exported `function` declaration, insert JSDoc above the declaration
+  (params, returns, throws — only what the code shows)
+- IGNORE type aliases, interfaces, classes, and zod schemas (out of scope)
+- Append a "## Usage" section to target-app/README.md (create the section if missing)
+  with one minimal code example per documented function
+- Refuse to edit any file other than the target file and target-app/README.md
+- Never modify function bodies — comments and README only
+- Output a one-line summary listing which functions gained docs
+
+Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
+  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
 ```
 
-Genesis will return a layout with sections, contracts, and an acceptance gate.
-
-📚 Notice Genesis will probably suggest a **rule file** (`.github/rules/jsdoc-style.md`) — Engineering primitive — to lock the style across runs. That's exactly what PROSE means by separating context from logic.
+Read Genesis's design + ASCII diagram. That's your spec.
 
 ---
 
-## 🛠️ Build (20 min)
+## 🛠️ Build (25 min)
 
-In `.apm/skills/my-skill/SKILL.md` (rename to `docs-generator/`):
+Open `.apm/skills/my-skill/SKILL.md`, fill it in. Then rename the **folder** to `docs-generator/`:
 
-**Hard rules:**
+```bash
+git mv .apm/skills/my-skill .apm/skills/docs-generator
+```
 
-- **`allowed-tools`:** `Read, Grep, Glob, Edit` — no shell, no npm. Documentation skills don't need execution.
-- **"When to use":** "When source files have exported functions without JSDoc, AND the user has asked for documentation." Specificity prevents false triggers.
-- **One read pass before writing.** Skill should never write JSDoc it can't trace to a line in the source.
+> 💡 **Skill discovery binds on the frontmatter `name:` field** (`name: docs-generator`). The folder name is convention only — but keep them aligned to avoid grep confusion later.
 
-📁 Reference: [`docs/golden-examples/docs-generator.SKILL.md`](../golden-examples/docs-generator.SKILL.md)
+**Ship-check rules:**
 
----
+- `allowed-tools`: `Read, Grep, Glob, Edit` (no shell — this Skill never runs code).
+- "When to use": *single TypeScript file under `target-app/lib/` with at least one undocumented exported function*. Refuse otherwise.
+- Hard rule in the prompt: **never describe behavior that's not in the source.** If you can't tell from the code, write `@throws` only when you see a `throw` keyword. If a parameter type is `any` or unconstrained, say so — don't speculate.
+- Output: edited target file + appended README section + one-line summary.
 
-## ✅ Validate locally (5 min)
-
-In your IDE:
-
-> "Use the docs-generator skill on sample-app/src/inventory.js"
-
-After the skill runs, inspect the diff:
-
-- ✅ All 6 exports have JSDoc
-- ✅ `restock` documents `@throws` for the qty contract
-- ✅ `reserve` documents the boolean return semantics correctly
-- ✅ `sample-app/README.md` gained a "Usage" section with one example per export
-
-Manual sanity check: read three of the docstrings and ask "could a new dev call this function correctly using only this?"
+📁 Stuck? See [`docs/golden-examples/docs-generator.SKILL.md`](../golden-examples/docs-generator.SKILL.md) after your first draft.
 
 ---
 
-## 📦 Package + publish (10 min)
+## ✅ Validate locally — with a real oracle (10 min)
+
+> "Use the docs-generator skill on `target-app/lib/cart.ts`."
+
+Expect:
+
+- `cart.ts` gains JSDoc above `addItem`, `removeItem`, `applyDiscount`, `computeTax`, `totalize` (the 5 functions).
+- `cart.ts` zod schemas / types / interfaces are **untouched**.
+- `target-app/README.md` gains a `## Usage` section with one example per documented function.
+- No edits to `tests/`, `app/`, or other `lib/*.ts` files.
+
+**Now run the three-step oracle.** This is what makes a Skill auditable in a banking-grade workflow:
+
+```bash
+# 1 · File scope — only cart.ts and (optionally) target-app/README.md may change.
+#     This must print nothing.
+git diff --name-only | grep -vE '^(target-app/lib/cart\.ts|target-app/README\.md)$'
+
+# 2 · TypeScript still compiles — comments don't break inference
+npx --prefix target-app tsc --noEmit -p target-app/tsconfig.json
+
+# 3 · Tests still pass — function bodies untouched
+npm test --prefix target-app
+
+# 4 · Comment-only diff — git diff in cart.ts must show only comment-prefixed lines.
+#     If this prints any non-comment line, the Skill broke its own
+#     "Safety Boundaries" rule and you reject the run.
+git diff target-app/lib/cart.ts | grep -E '^[+-][^+-]' | grep -vE '^[+-]\s*(\*|//|/\*|@)' | head
+```
+
+Steps 1 and 4 should print **nothing** (or only blank lines). If step 1 lists `tests/`, `app/`, or another `lib/*.ts`, the Skill went out of scope. If step 4 prints a code change, the Skill modified a function body — fail the run, fix the Skill's prompt, retry.
+
+> 📌 **This is the discipline differentiator.** Tracks 1 and 3 have natural oracles (`npm test`, `npm audit --json`). Track 2's oracle is *you, plus three commands*. Without it, "never invent behavior" is a vibe — a customer auditor will not accept that.
+
+---
+
+## 📦 Package + publish (15 min)
 
 ```bash
 apm run validate
 git add . && git commit -m "feat: docs-generator skill v0.1.0"
-git tag v0.1.0 && git push origin main --tags
+
+# If you ran multiple tracks in the same repo, scope the tag:
+git tag v0.1.0-docs-generator   # or just v0.1.0 if this is your only track
+git push origin main --tags
 ```
+
+> 💡 **Tag collision warning.** Every track guide says `git tag v0.1.0`. If you ran Track 1 in the same repo and tagged `v0.1.0` already, this push will fail. Either delete the old tag (`git tag -d v0.1.0 && git push --delete origin v0.1.0`) or scope it: `v0.1.0-docs-generator`.
+
+The release workflow validates → packs → publishes a GitHub Release with the tarball attached.
 
 ---
 
-## 🌐 Automate (5 min)
+## 🌐 Automate (15 min)
 
-Adapt `.github/workflows/my-workflow.md` to label `run-docs-generator`. Compile, commit, push.
+Wire `.github/workflows/my-workflow.md` to run the Skill on PRs touching `target-app/lib/*.ts`. Workshop scaffold:
 
-On any PR that touches files matching `sample-app/src/*.js`, the workflow appends JSDoc to changed files. You've turned documentation from a chore into a CI step.
+```bash
+# 1 · Create the trigger label (silent failure otherwise — without the label, the
+#     workflow doesn't fire and you'll think your Skill is broken):
+gh label create run-docs-generator --color B0E0FF --description "Run the docs-generator skill on this PR"
+
+# 2 · Edit .github/workflows/my-workflow.md so the on: stanza watches that label:
+#     on:
+#       pull_request:
+#         types: [labeled]
+#     # plus an `if: github.event.label.name == 'run-docs-generator'` guard
+#     # in the job.
+
+# 3 · Compile + commit:
+gh aw compile      # writes .github/workflows/my-workflow.lock.yml
+git add .github/workflows/ && git commit -m "ci: compile docs-generator workflow"
+git push
+```
+
+Open a PR touching `target-app/lib/cart.ts`, label it `run-docs-generator`, watch the workflow run.
+
+---
+
+## 🌍 The platform payoff — Section 6 (5 min)
+
+Now go back to the [README §6](../../README.md#-section-6--the-platform-claim). The same `docs-generator` skill you just shipped, in a partner repo's `apm.yml`:
+
+```yaml
+dependencies:
+  apm:
+    - <your-org>/<your-repo>#v0.1.0-docs-generator
+```
+
+`apm install` in their repo. Same SKILL.md, same `allowed-tools` enforcement, same outputs. **That's the difference between a system prompt and an Agent Skill.**
 
 ---
 
 ## 🎓 What you learned
 
-- **Skills can be read-only.** Not every skill needs Bash; minimal `allowed-tools` = safer skill.
-- **Rules vs. skills.** A rule file (`.github/rules/`) holds *style* the skill *applies*. Separation = no copy-paste between skills.
-- **Docs as a CI artifact.** Same loop as tests, different output type.
+- **Safety Boundaries are a prompt-engineering concern.** "Never invent behavior" lives in the Skill, not the model.
+- **Progressive Disclosure shapes outputs.** JSDoc + one usage section beats a 500-line tutorial.
+- **Documentation becomes a CI step**, not an afterthought.
+- **Oracles, even improvised ones, are non-negotiable.** Three-step `tsc + npm test + git diff` proved your Skill stayed in scope. The exact oracle differs per Skill — *that you have one* is the rule.
