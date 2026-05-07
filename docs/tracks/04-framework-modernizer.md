@@ -23,6 +23,8 @@ We built [`framework-modernizer`](../../.apm/skills/framework-modernizer/) as th
 
 There is no `/genesis` step at the start of this track — the design is already on disk under `references/DESIGN.md`. You'll rerun `/genesis` *only* when you fork at home.
 
+> 📦 **Productization heads-up.** The modernizer pattern you're reading here has graduated to a productized accelerator in [`DevExpGbb/zava-agent-config`](https://github.com/DevExpGbb/zava-agent-config) under `plugins/accelerators/modernize-kit/` (v6.1.0+), shipping with both `framework-modernizer` (Express 4→5, the read-along reference here) and `nextjs-modernizer` (Next 14→15, verified against `zava-storefront/`). Once your fork is solid, the home for it is alongside those — not in a one-off team repo.
+
 ---
 
 ## 🧠 1 · Read the design (10 min)
@@ -78,6 +80,62 @@ Draw an ASCII art diagram of what the *eventual* full fork would look like.
 Use this shape:
   User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
 ```
+
+### Reference architecture — what good looks like (the *fork* shape)
+
+Below is the canonical shape Genesis should emit when you scope your eventual full fork (using Next 14→15 as the example pair). Yours will use a different X→Y, but the **6-band shape** is what generalizes — and the four-artifact triangle (Catalog / Rubric / Fixture / Eval) inside the Workflow band is what makes a modernizer *defensible* rather than vibes-based.
+
+```
+┌─ Goal ─────────────────────────────────────────────────────┐
+│  Migrate a Next 14 codebase to Next 15 with a defensible  │
+│  plan: cited breaking changes, classified, regression-     │
+│  guarded                                                   │
+└────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─ Trigger ──────────────────────────────────────────────────┐
+│  "Use the nextjs-modernizer skill on <repo-path>."         │
+└────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─ Inputs ───────────────────────────────────────────────────┐
+│  • Target codebase (read-only, Grep + Edit for autofixes)  │
+│  • next-14-to-15-breaking-changes.md (CATALOG, cited)      │
+│  • classifier-rubric.md (SAFE / AUTOFIX / MANUAL)          │
+└────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─ Workflow (PIPELINE — the four-artifact loop) ─────────────┐
+│                                                            │
+│   ┌─ Catalog ─┐    ┌─ Rubric ─┐    ┌─ Skill ──┐    ┌─ Eval ─┐
+│   │ BC-001..N │ →  │ classify │ →  │ orchestr.│ →  │ regex  │
+│   │ cited     │    │ findings │    │ migration│    │ regress│
+│   │ regexes   │    │ (3 bins) │    │ plan     │    │ guard  │
+│   └───────────┘    └──────────┘    └──────────┘    └────────┘
+│                                                            │
+│  1. grep target with each BC catalog entry's regex         │
+│  2. classify hits via rubric (SAFE/AUTOFIX/MANUAL)         │
+│  3. autofix the AUTOFIX bin (deterministic substitution)   │
+│  4. write MIGRATION-PLAN.md with the MANUAL bin            │
+│  5. NEVER hallucinate a breaking change — catalog only     │
+└────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─ Verification ─────────────────────────────────────────────┐
+│  • node evals/run.js (regex regression: ≥N expected hits)  │
+│  • Fixture mini-app exercises every catalog entry          │
+│  • Existing tests still pass after AUTOFIX phase           │
+└────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─ Output artifact ──────────────────────────────────────────┐
+│  • MIGRATION-PLAN.md (3 phases: autofixed / manual /       │
+│    validation checklist)                                   │
+│  • PR with autofixed phase committed                       │
+└────────────────────────────────────────────────────────────┘
+```
+
+> 🛠️ **Today's deliverable is one BC-NNN entry**, not the full pipeline. The diagram above is the *target shape* — it tells you what slot your one entry plugs into and why the catalog citation discipline matters (every node downstream of "Catalog" is a function of catalog quality).
 
 **Schema for one entry** (mirror exactly what `express-4-to-5-breaking-changes.md` uses):
 
