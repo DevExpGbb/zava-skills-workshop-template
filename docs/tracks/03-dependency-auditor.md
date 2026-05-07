@@ -124,7 +124,7 @@ flowchart TD
 
 - **A2 PIPELINE-with-classifier** (not A1 PANEL) — there are no independent lenses to synthesize. One deterministic input, one deterministic schema, four mutually exclusive buckets. Adding agents would invent disagreement that the data doesn't have.
 - **B8 ATTENTION ANCHOR at the top** — `npm audit` exits non-zero on findings. The skill must *expect* non-zero and classify by JSON, not by exit code. The anchor pins this rule above every step so context drift can't dilute it.
-- **C1 CLASSIFIER as first-class node** — the four buckets are the contract the eval validates against. Inventing a 5th bucket inline means the rubric is wrong, not the data.
+- **C1 CLASSIFIER as first-class node** — the four buckets are the contract the rubric regression test validates against. Inventing a 5th bucket inline means the rubric is wrong, not the data.
 - **B5 SAFETY BOUNDARY (hard)** — DENY-list wraps every consequential step: no `npm install`, no `npm audit fix`, no `--force`, no writes to `package.json`/lockfile/`node_modules`. Recommendation, not remediation. The boundary is rendered as a node, not buried in prose.
 - **S7 DETERMINISTIC TOOL BRIDGE** — `npm audit --json` is the only authority. The LLM never re-derives severity or `fixAvailable` from recall.
 - **Failure modes guarded:** classifying on `severity` instead of `fixAvailable` (anchor blocks); inferring a 5th bucket (classifier is closed); attempting `npm audit fix` because the LLM "thinks it's safe" (deny list rejects).
@@ -139,13 +139,13 @@ In the same chat where Genesis just emitted the design, prompt your harness:
 
 That's it. Genesis takes over: it applies its own step-7b discipline (probe runtime, draft SKILL.md, validate against the design — including all four classifier branches and the read-only `allowed-tools` constraint). Any installed instructions — like `prose-style.md` from `code-kit` — get loaded by the harness automatically.
 
-Review the output node-for-node against the design diagram — especially the classifier rubric (the eval in §Validate regression-tests against it) and the absence of `Edit` from `allowed-tools` (the skill must not be able to mutate code).
+Review the output node-for-node against the design diagram — especially the classifier rubric (the rubric regression test in §Validate locks it down) and the absence of `Edit` from `allowed-tools` (the skill must not be able to mutate code).
 
 ### Iterate naturally
 
 The high-leverage moves aren't tweaks to the *original* prompt — they're new asks that build on what Genesis just shipped. Each one shows Genesis applying its own discipline to a real evolutionary need:
 
-- **Add evals.** *"Use the genesis skill to add evals for this skill."* Genesis proposes the eval harness — fixture set covering all four classifier branches, expected outcomes per row. The regression contract that catches a rubric drift the next time you tweak the prompt.
+- **Add real behavior evals** *(the agentskills.io kind, not a regression test)*. *"Use the genesis skill to add evals for this skill."* Genesis applies its step-6 EVALS PLAN: 2-3 content evals (each prompt run twice, **with_skill vs without_skill**, so the value delta is measurable) plus ~20 trigger evals (8-10 should-trigger + 8-10 near-miss, 60/40 train/val) for the dispatch description. Output: `evals/evals.json` + `evals/triggers.json`. Per the spec, **assertions are added after the first run** — iteration 1 explores, iteration 2 hardens. Ship gate: `with_skill` PASS AND measurable delta vs `without_skill`. If they're indistinguishable, the skill is not adding value.
 - **Make it run in CI/CD.** *"Use the genesis skill to make this run in CI/CD."* Genesis proposes a [`gh-aw`](https://githubnext.com/projects/agentic-workflows/) agentic workflow — paths filter on `package.json`/`package-lock.json`, the same audit running on every dependency PR.
 - **Modularize the specialist personas.** *"Use the genesis skill to modularize the specialist personas as a separate apm package."* Genesis proposes a package split — pulls the supply-chain risk persona into its own pinnable APM package shared with `secure-baseline`.
 
@@ -189,17 +189,19 @@ Then in your harness:
 
 > "Use the dependency-auditor skill on the npm-audit JSON at `/tmp/manual-review-fixture.json`."
 
-Expected output: `abandoned-pkg` lands under **Manual review**, with rationale `fixAvailable === false — no automated remediation; investigate upstream`. If it lands under safe-bump or breaking-bump instead, your classifier rubric is mis-ordered — fix the SKILL.md and retry. This is exactly the kind of off-happy-path case the eval fixture in §Validate covers; **see it once by hand here so you trust the eval afterwards**.
+Expected output: `abandoned-pkg` lands under **Manual review**, with rationale `fixAvailable === false — no automated remediation; investigate upstream`. If it lands under safe-bump or breaking-bump instead, your classifier rubric is mis-ordered — fix the SKILL.md and retry. This is exactly the kind of off-happy-path case the rubric regression test in §Validate locks down; **see it once by hand here so you trust the test afterwards**.
 
-### Run the deterministic eval (regression check)
+### Run the rubric regression test
 
-Once your Skill produces a clean live report and a clean MANUAL-REVIEW report by hand, run the harness — it asserts the exact classifications + fix versions the rubric should produce, including all four branches (`safe-bump`, `breaking-bump`, `fix-via-force`, `manual-review`):
+Once your Skill produces a clean live report and a clean MANUAL-REVIEW report by hand, run the regression script — it asserts the exact classifications + fix versions the rubric should produce, including all four branches (`safe-bump`, `breaking-bump`, `fix-via-force`, `manual-review`):
 
 ```bash
-apm run eval-track-3       # → ✅ dependency-auditor eval PASSED
+apm run regression-track-3       # → ✅ dependency-auditor rubric regression PASSED
 ```
 
-Mirrors Track 4's `evals/run.js` pattern — pure Node, no deps, runs in <2s. Read [`docs/golden-examples/dependency-auditor.evals/README.md`](../golden-examples/dependency-auditor.evals/README.md) for the maintenance contract (the rubric in your SKILL.md and the harness's `classify()` function are a single source of truth split across two files; they move together).
+Pure Node, no deps, runs in <2s. Mirrors Track 4's `evals/run.js` pattern. **This is a regression test for the classifier rubric — not a behavior eval.** It catches "did someone change the rubric without updating the expected file?" It does NOT catch "is the LLM producing useful output?" — that's what the agentskills.io-style behavior evals (added via Genesis in the §Iterate-naturally step) test, by running each prompt twice (with_skill vs without_skill) and comparing.
+
+Read [`docs/golden-examples/dependency-auditor.evals/README.md`](../golden-examples/dependency-auditor.evals/README.md) for both layers — Layer 1 is the behavior evals (`evals.json` + `triggers.json`), Layer 2 is this regression script. The maintenance contract: the rubric in your SKILL.md and the script's `classify()` function are a single source of truth split across two files; they move together.
 
 ---
 
