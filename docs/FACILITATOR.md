@@ -72,7 +72,7 @@ npm audit --json 2>/dev/null | jq -r \
 
 ## 4 · Workflow labels (per track you plan to run)
 
-`gh aw`'s labeled-PR trigger silently no-ops if the label doesn't exist. Pre-create labels in the **trainee org** if you can:
+`gh aw`'s labeled-PR trigger silently no-ops if the label doesn't exist (see the [trigger reference](https://github.github.com/gh-aw/reference/triggers/) for the full event matrix). Pre-create labels in the **trainee org** if you can:
 
 ```bash
 gh label create run-test-improver --color B0E0FF --description "Test-improver skill trigger" --repo <org/repo> || true

@@ -64,7 +64,7 @@ By the end of this workshop, you'll have:
   - **Linux / WSL:** `curl -fsSL https://raw.githubusercontent.com/microsoft/apm/main/install.sh | bash`
   - **Windows (PowerShell):** see the [APM install docs](https://microsoft.github.io/apm/install) — the bash installer also works under WSL.
 - [`gh`](https://cli.github.com) ≥ v2.90 — the `gh skill` subcommand we use is **preview**. If `gh skill --help` errors, run `gh extension install github/gh-skill` (auto-installed by the `release.yml` fallback path, but you want it locally for §4).
-- [`gh aw`](https://github.com/githubnext/gh-aw) — `gh extension install github/gh-aw`
+- [`gh aw`](https://github.com/githubnext/gh-aw) — `gh extension install github/gh-aw`. See the [security architecture](https://github.github.com/gh-aw/introduction/architecture/) if you want to understand the sandboxing + safe-outputs model before letting it run on your PRs.
 - An **agent harness**: Copilot CLI / Claude Code / Codex / Cursor / OpenCode
 - **Node.js ≥ 20** (for `zava-storefront/`)
 
