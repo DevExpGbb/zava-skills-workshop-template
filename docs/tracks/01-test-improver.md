@@ -164,7 +164,7 @@ You should see new tests covering the cases listed in `cart.test.ts`'s comment b
 Before you automate anything, run the pack command yourself and look at the artifact:
 
 ```bash
-apm pack --target claude --archive
+apm pack --archive
 ls build/
 # → build/test-improver-0.1.0.tar.gz
 
@@ -178,7 +178,7 @@ You'll see the bundle contains:
 - `skills/test-improver/SKILL.md` — what consumers actually load
 - `skills/test-improver/references/`, `evals/` — anything else under your skill folder
 
-That tarball is a Claude Code plugin bundle. Hand it to a teammate, they `apm install` it, and your skill is live in their harness. **No magic** — a manifest and a directory tree.
+That tarball is your skill bundle. Hand it to a teammate, they `apm install` it, and your skill is live in their harness. **No magic** — a manifest and a directory tree.
 
 ## 🚀 Automate the release (5 min)
 
