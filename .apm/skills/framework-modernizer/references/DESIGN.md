@@ -17,7 +17,7 @@
 
 ## Step 2 — component diagram
 
-```
+```mermaid
 flowchart TD
     USER[User request] --> SKILL[framework-modernizer SKILL]
     SKILL --> CATALOG[references/<br/>express-4-to-5-breaking-changes.md<br/>ASSET]
@@ -36,7 +36,7 @@ flowchart TD
 
 ## Step 3 — sequence diagram
 
-```
+```mermaid
 sequenceDiagram
     participant U as User
     participant S as framework-modernizer
