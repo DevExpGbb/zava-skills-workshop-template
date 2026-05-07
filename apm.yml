@@ -1,0 +1,33 @@
+name: my-workshop-skill
+version: 0.1.0
+description: >-
+  Workshop trainee starter — fork this template, build a skill in
+  .apm/skills/my-skill/, run it locally against sample-app/, then publish
+  via gh skill + apm pack on tag.
+author: <your name>
+license: UNLICENSED
+keywords:
+  - workshop
+  - apm
+  - agent-skill
+
+# Pin the workshop kits. These ship the personas, instructions, and the
+# Genesis-style design surface you'll lean on while authoring your skill.
+# Bump to v5.0.2 once it ships (panel skills vendored).
+dependencies:
+  apm:
+    - DevExpGbb/zava-agent-config/plugins/secure-baseline#v5.0.1
+    - DevExpGbb/zava-agent-config/plugins/code-kit#v5.0.1
+    - DevExpGbb/zava-agent-config/plugins/ideate-kit#v5.0.1
+    - DevExpGbb/zava-agent-config/plugins/review-kit#v5.0.1
+    # Genesis — the design assistant for new skills. Run it via your IDE
+    # to scope your skill before writing SKILL.md.
+    - danielmeppiel/genesis#main
+  mcp: []
+
+scripts:
+  # Pack this skill for distribution. CI runs the same on tag push.
+  pack: apm pack --offline --archive
+
+  # Validate against the open agent-skills.io spec before publishing.
+  validate: gh skill publish --dry-run .apm
