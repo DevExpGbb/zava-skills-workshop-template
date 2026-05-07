@@ -1,6 +1,6 @@
 # Track 3 · `dependency-auditor`
 
-> **You are not fixing the app. You are authoring a Skill** that runs `npm audit` against `target-app/security-fixtures/`, parses the JSON, ranks issues by severity, and emits a remediation plan as a PR comment — with safe-bump vs. breaking-bump split.
+> **You are not fixing the app. You are authoring a Skill** that runs `npm audit` against `zava-storefront/security-fixtures/`, parses the JSON, ranks issues by severity, and emits a remediation plan as a PR comment — with safe-bump vs. breaking-bump split.
 
 ⏱️ **90 min**
 
@@ -13,7 +13,7 @@
 
 **Local fallback (3 sentences):** A dependency auditor is a *classifier with a fixed schema*. *Orchestrated Composition* applies — your Skill calls a deterministic tool (`npm audit --json`), then the LLM does only what humans hate doing: reading 50 advisories and producing a triaged plan. *Safety Boundaries* matter twice: never modify `package.json` directly (recommend, don't apply); never invent CVE IDs.
 
-> ⚠️ The audit runs against `target-app/security-fixtures/`, a **standalone, intentionally-vulnerable npm package** that's not imported by the application. See its [README](../../target-app/security-fixtures/README.md).
+> ⚠️ The audit runs against `zava-storefront/security-fixtures/`, a **standalone, intentionally-vulnerable npm package** that's not imported by the application. See its [README](../../zava-storefront/security-fixtures/README.md).
 
 ---
 
@@ -22,8 +22,8 @@
 Run the raw tool yourself first. Use `--prefix` so cwd doesn't matter (and so you can never accidentally install fixture deps into the real app):
 
 ```bash
-npm install --prefix target-app/security-fixtures --no-audit --no-fund
-npm audit --prefix target-app/security-fixtures
+npm install --prefix zava-storefront/security-fixtures --no-audit --no-fund
+npm audit --prefix zava-storefront/security-fixtures
 ```
 
 You'll see a wall of advisories — `lodash` prototype pollution, `axios` SSRF, `minimist`. Now ask your AI chat assistant:
@@ -44,7 +44,7 @@ A Skill closes that gap.
 
 ```
 /genesis I want a dependency-auditor skill. It must:
-- Run `npm audit --json` in target-app/security-fixtures/
+- Run `npm audit --json` in zava-storefront/security-fixtures/
 - Parse the JSON and rank vulnerabilities by severity (critical > high > moderate > low)
 - For each entry under the top-level `vulnerabilities` object, classify the recommendation:
     safe-bump      → fixAvailable is an object AND fixAvailable.isSemVerMajor === false
@@ -94,7 +94,7 @@ git mv .apm/skills/my-skill .apm/skills/dependency-auditor
 
 ## ✅ Validate locally (5 min)
 
-> "Use the dependency-auditor skill on `target-app/security-fixtures/`."
+> "Use the dependency-auditor skill on `zava-storefront/security-fixtures/`."
 
 Expect a report listing at minimum:
 

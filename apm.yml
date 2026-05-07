@@ -2,7 +2,7 @@ name: my-workshop-skill
 version: 0.1.0
 description: >-
   Workshop trainee starter — fork this template, build a skill in
-  .apm/skills/my-skill/, run it locally against target-app/, then publish
+  .apm/skills/my-skill/, run it locally against zava-storefront/, then publish
   via gh skill + apm pack on tag.
 author: <your name>
 license: UNLICENSED

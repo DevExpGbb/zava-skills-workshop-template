@@ -28,8 +28,9 @@ cd /tmp/wf-preflight
 
 # Setup chain — the same one trainees run:
 apm install
-npm install --prefix target-app
-npm test --prefix target-app                 # → 7/7 green
+git clone https://github.com/DevExpGbb/zava-storefront.git zava-storefront
+npm install --prefix zava-storefront
+npm test --prefix zava-storefront                 # → 7/7 green
 node .apm/skills/framework-modernizer/evals/run.js   # → 8/8 match
 
 # Validation surface:
@@ -40,15 +41,15 @@ If `apm run validate` fails because `gh skill` isn't installed: `gh extension in
 
 ## 3 · Preinstall guard fires
 
-Confirm the safety net works (this is what protects trainees from accidentally polluting `target-app/` with vulnerable deps from `security-fixtures/`):
+Confirm the safety net works (this is what protects trainees from accidentally polluting `zava-storefront/` with vulnerable deps from `security-fixtures/`):
 
 ```bash
 cd /tmp/wf-preflight
 # Try to add lodash to the real app — should be rejected:
-( cd target-app && npm pkg set dependencies.lodash="4.17.4" && npm install ) 2>&1 | tail -5
+( cd zava-storefront && npm pkg set dependencies.lodash="4.17.4" && npm install ) 2>&1 | tail -5
 # Expected: "❌ Refusing to install ... lodash@4.17.4 is a known-vulnerable fixture-only dep"
 # Roll back:
-( cd target-app && npm pkg delete dependencies.lodash )
+( cd zava-storefront && npm pkg delete dependencies.lodash )
 ```
 
 ## 4 · Workflow labels (per track you plan to run)

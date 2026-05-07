@@ -1,7 +1,7 @@
 ---
 name: dependency-auditor
 description: |
-  Run `npm audit --json` against target-app/security-fixtures/, parse the result,
+  Run `npm audit --json` against zava-storefront/security-fixtures/, parse the result,
   rank advisories by severity, classify each as safe-bump vs breaking-bump, and
   emit a markdown remediation report. Never modify package.json.
 license: MIT
@@ -14,15 +14,15 @@ allowed-tools: Read, Bash(npm:*), Bash(jq:*)
 
 Invoke when:
 
-- The user asks for a security audit of `target-app/security-fixtures/`
-- A PR modifies `target-app/security-fixtures/package.json` or `target-app/package.json`
+- The user asks for a security audit of `zava-storefront/security-fixtures/`
+- A PR modifies `zava-storefront/security-fixtures/package.json` or `zava-storefront/package.json`
 
 Do not invoke for: source code changes, lockfile-only changes, or repos without a `package.json`.
 
 ## Steps
 
-1. Run `npm install --prefix target-app/security-fixtures --no-audit --no-fund` to ensure dependencies are present.
-2. Run `npm audit --prefix target-app/security-fixtures --json` and capture stdout.
+1. Run `npm install --prefix zava-storefront/security-fixtures --no-audit --no-fund` to ensure dependencies are present.
+2. Run `npm audit --prefix zava-storefront/security-fixtures --json` and capture stdout.
 3. Parse the JSON. The relevant shape (npm 10+) is:
    ```
    {
@@ -59,7 +59,7 @@ Do not invoke for: source code changes, lockfile-only changes, or repos without 
 - <package>: fixAvailable === false — no automated remediation; investigate upstream
 
 ## Recommended next step
-- Apply safe-bumps with `npm install --prefix target-app/security-fixtures <pkg>@<version>` (always use `--prefix` — never run from the wrong cwd or you risk polluting the real app's `package.json`).
+- Apply safe-bumps with `npm install --prefix zava-storefront/security-fixtures <pkg>@<version>` (always use `--prefix` — never run from the wrong cwd or you risk polluting the real app's `package.json`).
 - Open separate PRs for breaking-bumps; pair each with regression tests.
 ```
 
@@ -72,4 +72,4 @@ Do not invoke for: source code changes, lockfile-only changes, or repos without 
 
 ## Example invocation
 
-> Use the dependency-auditor skill on `target-app/security-fixtures/`.
+> Use the dependency-auditor skill on `zava-storefront/security-fixtures/`.

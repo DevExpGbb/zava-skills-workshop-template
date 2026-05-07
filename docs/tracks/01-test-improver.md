@@ -1,6 +1,6 @@
 # Track 1 · `test-improver`
 
-> **You are not fixing the app. You are authoring a Skill** that finds untested branches in `target-app/lib/cart.ts` (and friends), proposes the missing tests, runs `npm test`, and iterates until green.
+> **You are not fixing the app. You are authoring a Skill** that finds untested branches in `zava-storefront/lib/cart.ts` (and friends), proposes the missing tests, runs `npm test`, and iterates until green.
 
 ⏱️ **90 min**
 
@@ -19,9 +19,9 @@
 
 Open these three files:
 
-- [`target-app/lib/cart.ts`](../../target-app/lib/cart.ts) · `addItem`, `applyDiscount`, `computeTax`, `totalize`
-- [`target-app/lib/orders.ts`](../../target-app/lib/orders.ts) · `createOrder`, `findOrder`, `fulfillmentMessage`
-- [`target-app/tests/cart.test.ts`](../../target-app/tests/cart.test.ts) · note the comment block at the bottom listing **uncovered branches**
+- [`zava-storefront/lib/cart.ts`](../../zava-storefront/lib/cart.ts) · `addItem`, `applyDiscount`, `computeTax`, `totalize`
+- [`zava-storefront/lib/orders.ts`](../../zava-storefront/lib/orders.ts) · `createOrder`, `findOrder`, `fulfillmentMessage`
+- [`zava-storefront/tests/cart.test.ts`](../../zava-storefront/tests/cart.test.ts) · note the comment block at the bottom listing **uncovered branches**
 
 Now ask your AI chat assistant (no Skill, no extra context) the naïve prompt:
 
@@ -45,10 +45,10 @@ In your IDE (your agent harness — Copilot CLI, Claude Code, Codex, Cursor, Ope
 
 ```
 /genesis I want a test-improver skill. It must:
-- Target a single source file under target-app/lib/
-- Detect functions whose branches/error paths are uncovered by target-app/tests/
+- Target a single source file under zava-storefront/lib/
+- Detect functions whose branches/error paths are uncovered by zava-storefront/tests/
 - Generate vitest tests for the missing branches (NOT Jest)
-- Run `npm test --prefix target-app` after each iteration
+- Run `npm test --prefix zava-storefront` after each iteration
 - Stop when all branches are green or after 5 iterations
 - Emit one final summary comment listing what it added
 
@@ -85,20 +85,20 @@ git mv .apm/skills/my-skill .apm/skills/test-improver
 
 In your IDE, drive the skill:
 
-> "Use the test-improver skill on `target-app/lib/cart.ts`."
+> "Use the test-improver skill on `zava-storefront/lib/cart.ts`."
 
 Watch the agent:
 
 1. Read `cart.ts`.
 2. Compare against `tests/cart.test.ts`.
 3. Generate new vitest cases (e.g. for `VIP25`, `WELCOME10`, `computeTax` regions).
-4. Run `npm test --prefix target-app`.
+4. Run `npm test --prefix zava-storefront`.
 5. Iterate.
 
 When the loop converges, run it yourself:
 
 ```bash
-npm test --prefix target-app
+npm test --prefix zava-storefront
 ```
 
 You should see new tests covering the cases listed in `cart.test.ts`'s comment block.
@@ -144,7 +144,7 @@ git add .github/workflows/ && git commit -m "ci: compile test-improver workflow"
 git push
 ```
 
-Open a PR touching `target-app/lib/cart.ts`, label it `run-test-improver`, and watch your skill execute on the PR — that's the inner→outer loop transition.
+Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-test-improver`, and watch your skill execute on the PR — that's the inner→outer loop transition.
 
 ---
 

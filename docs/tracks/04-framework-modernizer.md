@@ -98,7 +98,7 @@ Suggested fork targets:
 
 | Migration | Why it's a good fit |
 |---|---|
-| Next.js 14 → 15 | App Router stable surface; codified migration guide; *applies to `target-app/`* — natural take-home |
+| Next.js 14 → 15 | App Router stable surface; codified migration guide; *applies to `zava-storefront/`* — natural take-home |
 | React 17 → 18 | Strict mode, `createRoot`, automatic batching — high mechanical surface |
 | Spring Boot 2 → 3 | Jakarta EE namespace flip; codified migration guide |
 | .NET 6 → 8 | `Program.cs` minimal hosting; explicit changelog per release |
@@ -117,7 +117,7 @@ You won't finish the fork in this session. The path home:
 
 The file-by-file substitution is in `DESIGN.md` "Forking this pattern."
 
-For an internal stretch: target your own platform repo (e.g. [`zava-platform`](https://github.com/DevExpGbb/zava-platform) as a public reference) — fork the modernizer for **Next 14 → 15** and run it against this template's own `target-app/`. Have the skill open a PR with the autofixed phase committed and `MIGRATION-PLAN.md` attached.
+For an internal stretch: target your own platform repo (e.g. [`zava-platform`](https://github.com/DevExpGbb/zava-platform) as a public reference) — fork the modernizer for **Next 14 → 15** and run it against this template's own `zava-storefront/`. Have the skill open a PR with the autofixed phase committed and `MIGRATION-PLAN.md` attached.
 
 ---
 

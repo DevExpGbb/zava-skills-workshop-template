@@ -1,6 +1,6 @@
 # Track 2 · `docs-generator`
 
-> **You are not fixing the app. You are authoring a Skill** that reads `target-app/lib/*.ts`, detects undocumented exported **functions**, and emits JSDoc + a README usage section — without inventing behavior.
+> **You are not fixing the app. You are authoring a Skill** that reads `zava-storefront/lib/*.ts`, detects undocumented exported **functions**, and emits JSDoc + a README usage section — without inventing behavior.
 
 ⏱️ **90 min**
 
@@ -21,9 +21,9 @@ This Skill targets exported **functions** only. Type aliases, interfaces, and zo
 
 Open these:
 
-- [`target-app/lib/cart.ts`](../../target-app/lib/cart.ts) — **5 exported functions** (8 named exports total: 3 are types/schemas, out of scope), zero JSDoc.
-- [`target-app/lib/orders.ts`](../../target-app/lib/orders.ts) — **5 exported functions** (8 named exports total), zero JSDoc.
-- [`target-app/lib/search.ts`](../../target-app/lib/search.ts) — **2 exported functions** (3 named exports total), zero JSDoc.
+- [`zava-storefront/lib/cart.ts`](../../zava-storefront/lib/cart.ts) — **5 exported functions** (8 named exports total: 3 are types/schemas, out of scope), zero JSDoc.
+- [`zava-storefront/lib/orders.ts`](../../zava-storefront/lib/orders.ts) — **5 exported functions** (8 named exports total), zero JSDoc.
+- [`zava-storefront/lib/search.ts`](../../zava-storefront/lib/search.ts) — **2 exported functions** (3 named exports total), zero JSDoc.
 
 Now ask your AI chat assistant (no Skill) the naïve prompt:
 
@@ -44,13 +44,13 @@ That drift is the failure mode.
 
 ```
 /genesis I want a docs-generator skill. It must:
-- Target a single TypeScript file under target-app/lib/
+- Target a single TypeScript file under zava-storefront/lib/
 - For every exported `function` declaration, insert JSDoc above the declaration
   (params, returns, throws — only what the code shows)
 - IGNORE type aliases, interfaces, classes, and zod schemas (out of scope)
-- Append a "## Usage" section to target-app/README.md (create the section if missing)
+- Append a "## Usage" section to zava-storefront/README.md (create the section if missing)
   with one minimal code example per documented function
-- Refuse to edit any file other than the target file and target-app/README.md
+- Refuse to edit any file other than the target file and zava-storefront/README.md
 - Never modify function bodies — comments and README only
 - Output a one-line summary listing which functions gained docs
 
@@ -75,7 +75,7 @@ git mv .apm/skills/my-skill .apm/skills/docs-generator
 **Ship-check rules:**
 
 - `allowed-tools`: `Read, Grep, Glob, Edit` (no shell — this Skill never runs code).
-- "When to use": *single TypeScript file under `target-app/lib/` with at least one undocumented exported function*. Refuse otherwise.
+- "When to use": *single TypeScript file under `zava-storefront/lib/` with at least one undocumented exported function*. Refuse otherwise.
 - Hard rule in the prompt: **never describe behavior that's not in the source.** If you can't tell from the code, write `@throws` only when you see a `throw` keyword. If a parameter type is `any` or unconstrained, say so — don't speculate.
 - Output: edited target file + appended README section + one-line summary.
 
@@ -85,32 +85,32 @@ git mv .apm/skills/my-skill .apm/skills/docs-generator
 
 ## ✅ Validate locally — with a real oracle (10 min)
 
-> "Use the docs-generator skill on `target-app/lib/cart.ts`."
+> "Use the docs-generator skill on `zava-storefront/lib/cart.ts`."
 
 Expect:
 
 - `cart.ts` gains JSDoc above `addItem`, `removeItem`, `applyDiscount`, `computeTax`, `totalize` (the 5 functions).
 - `cart.ts` zod schemas / types / interfaces are **untouched**.
-- `target-app/README.md` gains a `## Usage` section with one example per documented function.
+- `zava-storefront/README.md` gains a `## Usage` section with one example per documented function.
 - No edits to `tests/`, `app/`, or other `lib/*.ts` files.
 
 **Now run the three-step oracle.** This is what makes a Skill auditable in a banking-grade workflow:
 
 ```bash
-# 1 · File scope — only cart.ts and (optionally) target-app/README.md may change.
+# 1 · File scope — only cart.ts and (optionally) zava-storefront/README.md may change.
 #     This must print nothing.
-git diff --name-only | grep -vE '^(target-app/lib/cart\.ts|target-app/README\.md)$'
+git diff --name-only | grep -vE '^(zava-storefront/lib/cart\.ts|zava-storefront/README\.md)$'
 
 # 2 · TypeScript still compiles — comments don't break inference
-npx --prefix target-app tsc --noEmit -p target-app/tsconfig.json
+npx --prefix zava-storefront tsc --noEmit -p zava-storefront/tsconfig.json
 
 # 3 · Tests still pass — function bodies untouched
-npm test --prefix target-app
+npm test --prefix zava-storefront
 
 # 4 · Comment-only diff — git diff in cart.ts must show only comment-prefixed lines.
 #     If this prints any non-comment line, the Skill broke its own
 #     "Safety Boundaries" rule and you reject the run.
-git diff target-app/lib/cart.ts | grep -E '^[+-][^+-]' | grep -vE '^[+-]\s*(\*|//|/\*|@)' | head
+git diff zava-storefront/lib/cart.ts | grep -E '^[+-][^+-]' | grep -vE '^[+-]\s*(\*|//|/\*|@)' | head
 ```
 
 Steps 1 and 4 should print **nothing** (or only blank lines). If step 1 lists `tests/`, `app/`, or another `lib/*.ts`, the Skill went out of scope. If step 4 prints a code change, the Skill modified a function body — fail the run, fix the Skill's prompt, retry.
@@ -138,7 +138,7 @@ The release workflow validates → packs → publishes a GitHub Release with the
 
 ## 🌐 Automate (15 min)
 
-Wire `.github/workflows/my-workflow.md` to run the Skill on PRs touching `target-app/lib/*.ts`. Workshop scaffold:
+Wire `.github/workflows/my-workflow.md` to run the Skill on PRs touching `zava-storefront/lib/*.ts`. Workshop scaffold:
 
 ```bash
 # 1 · Create the trigger label (silent failure otherwise — without the label, the
@@ -158,7 +158,7 @@ git add .github/workflows/ && git commit -m "ci: compile docs-generator workflow
 git push
 ```
 
-Open a PR touching `target-app/lib/cart.ts`, label it `run-docs-generator`, watch the workflow run.
+Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-docs-generator`, watch the workflow run.
 
 ---
 

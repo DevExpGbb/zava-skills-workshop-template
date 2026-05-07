@@ -27,7 +27,7 @@ You've used Copilot. You've felt the ceiling:
 By the end of this workshop, you'll have:
 
 1. A **designed skill** — produced *with* [Genesis](https://github.com/DevExpGbb/genesis), not improvised
-2. That skill **running locally** in your IDE on a representative Next.js + Postgres-shaped commerce slice (`target-app/`)
+2. That skill **running locally** in your IDE against the canonical [`DevExpGbb/zava-storefront`](https://github.com/DevExpGbb/zava-storefront) — a real Next.js 14 + Postgres commerce repo (cloned alongside this workshop, not vendored)
 3. The same skill **packaged + released** as a versioned tarball (`v0.1.0`)
 4. The same skill **executing in CI** on PRs via [`gh aw`](https://github.com/githubnext/gh-aw)
 5. A **consumer repo** pinning your skill via `apm` and getting the value automatically
@@ -43,7 +43,7 @@ By the end of this workshop, you'll have:
 | **0 · Setup** | Use template, install deps, verify CLIs **and your harness** | 15 min | Individual |
 | **1 · Pick your track** | One of four | 5 min | Choose |
 | **2 · Design with Genesis** | Spec your skill *before* you write it (with an ASCII architecture diagram) | 10 min | Hands-on |
-| **3 · Build locally** | Author `SKILL.md`, drive it on `target-app/` | 25 min | Hands-on |
+| **3 · Build locally** | Author `SKILL.md`, drive it on `zava-storefront/` | 25 min | Hands-on |
 | **4 · Validate + publish** | `gh skill publish --dry-run` → tag → release | 15 min | Hands-on |
 | **5 · Automate in CI** | `gh aw compile` → label a PR → watch it run | 15 min | Hands-on |
 | **6 · Consume from another repo** | Pin your skill in a partner repo via `apm` | 10 min | Demo |
@@ -64,7 +64,7 @@ By the end of this workshop, you'll have:
 - [`gh`](https://cli.github.com) ≥ v2.90 — the `gh skill` subcommand we use is **preview**. If `gh skill --help` errors, run `gh extension install github/gh-skill` (auto-installed by the `release.yml` fallback path, but you want it locally for §4).
 - [`gh aw`](https://github.com/githubnext/gh-aw) — `gh extension install github/gh-aw`
 - An **agent harness**: Copilot CLI / Claude Code / Codex / Cursor / OpenCode
-- **Node.js ≥ 20** (for `target-app/`)
+- **Node.js ≥ 20** (for `zava-storefront/`)
 
 ### 1. Use this template
 
@@ -74,7 +74,11 @@ Click the green **"Use this template"** button at the top of this repo → **"Cr
 
 ```bash
 apm install                        # workshop kits + Genesis design assistant (pinned to v0.1.0)
-npm install --prefix target-app    # Next.js + Postgres commerce slice (the workshop target)
+
+# Clone the canonical target app (zava-storefront, a real DevExpGbb repo) into this workshop dir.
+# It's gitignored — your generated workshop repo stays clean.
+git clone https://github.com/DevExpGbb/zava-storefront.git zava-storefront
+npm install --prefix zava-storefront    # Next.js + Postgres commerce slice (the workshop target)
 ```
 
 `apm install` pulls in:
@@ -100,7 +104,7 @@ gh repo view                       # should resolve to your generated repo
 # If /genesis doesn't surface, re-run `apm install` and check .agents/skills/genesis exists.
 
 # Test surface:
-npm test --prefix target-app       # 7 vitest specs should pass green
+npm test --prefix zava-storefront       # 7 vitest specs should pass green
 
 # Validation surface (only if `gh skill` is installed locally):
 apm run validate                   # → gh skill publish --dry-run .apm
@@ -114,7 +118,7 @@ If the smoke tests pass and `/genesis` surfaces in your harness, you're ready.
 
 This workshop pins what it can and is honest about what it can't:
 
-- **Pinned:** `apm`, the four workshop kits (`v5.0.1`), Genesis (`v0.1.0`), Node deps in `target-app/` and `security-fixtures/`.
+- **Pinned:** `apm`, the four workshop kits (`v5.0.1`), Genesis (`v0.1.0`), Node deps in `zava-storefront/` and `security-fixtures/`.
 - **Not pinned (and you should know):**
   - **Model + harness drift.** The same `SKILL.md` does not produce byte-equivalent outputs across Copilot CLI / Claude Code / Cursor / Codex / OpenCode — tool-call grammar and refusal behaviors differ. The *artifact* (your `SKILL.md`) is reproducible; the model's transcript is not.
   - **`gh skill` preview surface.** API may change between workshops; the lockfile validates against `agent-skills.io` spec at the time of running.
@@ -130,9 +134,9 @@ Each track teaches the same loop on different content. Pick **ONE** based on wha
 
 | Track | What your skill will do | Best for |
 |---|---|---|
-| 🧪 [**1 · `test-improver`**](docs/tracks/01-test-improver.md) | Find untested branches in `target-app/lib/cart.ts` (and friends), generate vitest cases, iterate `npm test` until green | Devs who want to raise coverage in legacy code |
-| 📖 [**2 · `docs-generator`**](docs/tracks/02-docs-generator.md) | Read `target-app/lib/*.ts`, emit JSDoc + a README usage section without inventing behavior | Devs documenting brownfield modules |
-| 🛡️ [**3 · `dependency-auditor`**](docs/tracks/03-dependency-auditor.md) | Run `npm audit` against `target-app/security-fixtures/`, classify SAFE vs BREAKING upgrades, emit a remediation plan as PR comment | Security-minded devs working in dep-heavy repos |
+| 🧪 [**1 · `test-improver`**](docs/tracks/01-test-improver.md) | Find untested branches in `zava-storefront/lib/cart.ts` (and friends), generate vitest cases, iterate `npm test` until green | Devs who want to raise coverage in legacy code |
+| 📖 [**2 · `docs-generator`**](docs/tracks/02-docs-generator.md) | Read `zava-storefront/lib/*.ts`, emit JSDoc + a README usage section without inventing behavior | Devs documenting brownfield modules |
+| 🛡️ [**3 · `dependency-auditor`**](docs/tracks/03-dependency-auditor.md) | Run `npm audit` against `zava-storefront/security-fixtures/`, classify SAFE vs BREAKING upgrades, emit a remediation plan as PR comment | Security-minded devs working in dep-heavy repos |
 | 🔄 [**4 · `framework-modernizer`**](docs/tracks/04-framework-modernizer.md) | Read a finished, eval-backed reference skill (Express 4 → 5) — author one new BC-NNN catalog entry for *your* migration. **Reference deep-dive (30 min), not a from-scratch build.** | Devs facing a major-version upgrade who want the pattern, not the artifact |
 
 > 💡 Stuck choosing? Pick **`test-improver`** — it has the cleanest validation loop (`npm test` is the oracle).
@@ -148,8 +152,8 @@ Each track guide takes you through Sections 2–6 with track-specific content. O
 | `apm.yml` · `apm.lock.yaml` | Workshop kits + Genesis pinned. `apm install` reads this. |
 | `.apm/skills/my-skill/SKILL.md` | **Your blank canvas.** Rename, fill in. |
 | `.apm/skills/framework-modernizer/` | Track 4's worked example — eval-backed Express 4 → 5 reference skill |
-| `target-app/` | Next.js 14 + Postgres commerce slice (search → cart → orders → session). Three deliberate gaps for tracks 1–3. |
-| `target-app/security-fixtures/` | **Standalone, intentionally-vulnerable** npm package — Track 3's audit target. Not imported by the app. |
+| `zava-storefront/` *(cloned, gitignored)* | The canonical [DevExpGbb/zava-storefront](https://github.com/DevExpGbb/zava-storefront) — Next.js 14 + Postgres commerce repo. Cloned in §0.2. Tracks 1–3 target it. |
+| `zava-storefront/security-fixtures/` | Standalone, intentionally-vulnerable npm package inside the storefront repo — Track 3's audit target. Not imported by the app. |
 | `docs/tracks/` | Per-track exercise guides (Sections 2–6 expanded) |
 | `docs/golden-examples/` | Reference `SKILL.md` per track — peek **after** you've drafted yours |
 | `.github/workflows/release.yml` | Tag → validate → pack → GitHub Release on `v*.*.*` |
