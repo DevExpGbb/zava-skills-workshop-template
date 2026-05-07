@@ -73,7 +73,7 @@ Click the green **"Use this template"** button at the top of this repo → **"Cr
 ### 2. Install dependencies
 
 ```bash
-cd <your-forked-workshop-repo>          # the repo you generated in §1, freshly cloned
+# from the root of the repo you generated in §1 (freshly cloned)
 
 apm install                             # workshop kits + Genesis design assistant (pinned to v0.1.0)
 
@@ -92,7 +92,7 @@ npm install --prefix zava-storefront    # Next.js + Postgres commerce slice (the
 
 ```bash
 # CLI smoke test (no network):
-apm list                           # should list the 5 deps above
+apm deps list                      # should list the 5 deps above
 # Expected (abridged):
 #   secure-baseline  v0.1.x  (DevExpGbb/secure-baseline)
 #   code-kit         v0.1.x  (DevExpGbb/code-kit)
