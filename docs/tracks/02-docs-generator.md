@@ -221,37 +221,76 @@ The [release workflow](../../.github/workflows/release.yml) validates → packs 
 
 ---
 
-## 🌐 Automate (15 min)
+## 🌐 Automate (15 min) — run your skill in CI
 
-Wire `.github/workflows/my-workflow.md` to run the Skill on PRs touching `zava-storefront/lib/*.ts`. Workshop scaffold:
+The skill you just released is now a portable artifact. Time to make your own CI a consumer of it.
+
+The template ships a starter [gh-aw](https://github.github.com/gh-aw/) workflow at [`.github/workflows/my-workflow.md`](../../.github/workflows/my-workflow.md). gh-aw workflows are markdown: YAML frontmatter for triggers + permissions, then a natural-language prompt the agent runs. Replace the file's contents with this — note the `packages:` line pins the release tag you just pushed:
+
+```markdown
+---
+on:
+  pull_request:
+    types: [labeled]
+    paths: ['zava-storefront/lib/**']
+  workflow_dispatch:
+  roles: [admin, maintainer, write]
+
+if: |
+  (github.event_name == 'pull_request' && github.event.label.name == 'run-docs-generator')
+  || github.event_name == 'workflow_dispatch'
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+network: defaults
+
+engine:
+  id: copilot
+
+# Pin the skill you just released. apm-action will download this tarball
+# at run-time and make `docs-generator` available to the agent below.
+imports:
+  - uses: shared/apm.md
+    with:
+      packages:
+        - <your-org>/<your-repo>#v0.1.0-docs-generator
+
+safe-outputs:
+  add-comment:
+    max: 1
+
+timeout-minutes: 15
+---
+
+# Run docs-generator
+
+You are running the **`docs-generator`** Agent Skill against this repository's
+`zava-storefront/lib/` directory. Follow its `SKILL.md` exactly. Post a 3–5 bullet
+summary of files inspected, JSDoc blocks added, and any modules that already had
+documentation via `add-comment`.
+
+Do not modify files outside `zava-storefront/lib/`. Do not merge or label the PR.
+```
+
+Then create the trigger label, compile, and push:
 
 ```bash
-# 1 · Create the trigger label (silent failure otherwise — without the label, the
-#     workflow doesn't fire and you'll think your Skill is broken):
 gh label create run-docs-generator --color B0E0FF --description "Run the docs-generator skill on this PR"
-
-# 2 · Edit .github/workflows/my-workflow.md. Concrete diff against the scaffold:
-#
-#       on:
-#         pull_request:
-#     -     types: [labeled]
-#     +     types: [labeled]
-#     +     paths: ['zava-storefront/lib/**']
-#         workflow_dispatch:
-#         roles: [admin, maintainer, write]
-#
-#       if: |
-#     -   (github.event_name == 'pull_request' && github.event.label.name == 'run-my-skill')
-#     +   (github.event_name == 'pull_request' && github.event.label.name == 'run-docs-generator')
-#         || github.event_name == 'workflow_dispatch'
-
-# 3 · Compile + commit:
-gh aw compile      # writes .github/workflows/my-workflow.lock.yml
-git add .github/workflows/ && git commit -m "ci: compile docs-generator workflow"
+gh aw compile      # → .github/workflows/my-workflow.lock.yml
+git add .github/workflows/ && git commit -m "ci: wire docs-generator in CI"
 git push
 ```
 
-Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-docs-generator`, watch the workflow run.
+Open a PR touching any `zava-storefront/lib/*.ts`, label it `run-docs-generator`, and watch the workflow run.
+
+> 💡 **The release tag you just pushed is what your CI pins.** The `apm pack` → release tarball → `imports.with.packages` chain is the same mechanism another team would use to consume your skill — your CI just happens to be one of those consumers. Bump the tag, bump the pin: same flow as any versioned dependency.
+
+> 💡 **What is `shared/apm.md`?** A vendored gh-aw [shared workflow component](https://microsoft.github.io/apm/integrations/gh-aw/) that turns `packages:` into a real `apm install` step in your compiled workflow. The template ships it pre-vendored at [`.github/workflows/shared/apm.md`](../../.github/workflows/shared/apm.md). If you ever start a workflow from scratch in another repo, copy it once: `mkdir -p .github/workflows/shared && curl -sSL https://raw.githubusercontent.com/microsoft/apm/main/.github/workflows/shared/apm.md > .github/workflows/shared/apm.md`. See [`gh aw` reference: workflow lock file](https://github.github.com/gh-aw/reference/faq/#what-is-a-workflow-lock-file) for why the `.md` and `.lock.yml` both ship.
+
+> 💡 **Compose with kit primitives.** Add more lines under `packages:` — e.g., `DevExpGbb/zava-agent-config/plugins/code-kit#v5.0.1` to also load code-kit's coding-standards instructions alongside your own skill. Same import block, more primitives available to the agent.
 
 ---
 

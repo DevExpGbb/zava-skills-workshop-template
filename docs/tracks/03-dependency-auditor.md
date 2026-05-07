@@ -244,26 +244,77 @@ The [release workflow](../../.github/workflows/release.yml) validates → packs 
 
 ---
 
-## 🌐 Automate (15 min)
+## 🌐 Automate (15 min) — run your skill in CI
 
-Wire the workflow to run on PRs touching any `package.json`. The Skill posts the audit report as a PR comment. **It does not auto-merge or auto-bump.** That's the auditor's whole point.
+The skill you just released is now a portable artifact. Time to make your own CI a consumer of it. The auditor posts its report as a PR comment. **It does not auto-merge or auto-bump.** That's the auditor's whole point.
+
+The template ships a starter [gh-aw](https://github.github.com/gh-aw/) workflow at [`.github/workflows/my-workflow.md`](../../.github/workflows/my-workflow.md). gh-aw workflows are markdown: YAML frontmatter for triggers + permissions, then a natural-language prompt the agent runs. Replace the file's contents with this — note the `packages:` line pins the release tag you just pushed:
+
+```markdown
+---
+on:
+  pull_request:
+    types: [labeled]
+    paths: ['**/package.json']
+  workflow_dispatch:
+  roles: [admin, maintainer, write]
+
+if: |
+  (github.event_name == 'pull_request' && github.event.label.name == 'run-dependency-auditor')
+  || github.event_name == 'workflow_dispatch'
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+network: defaults
+
+engine:
+  id: copilot
+
+# Pin the skill you just released. apm-action will download this tarball
+# at run-time and make `dependency-auditor` available to the agent below.
+imports:
+  - uses: shared/apm.md
+    with:
+      packages:
+        - <your-org>/<your-repo>#v0.1.0-dependency-auditor
+
+safe-outputs:
+  add-comment:
+    max: 1
+
+timeout-minutes: 15
+---
+
+# Run dependency-auditor
+
+You are running the **`dependency-auditor`** Agent Skill against this repository's
+`zava-storefront/` directory. Follow its `SKILL.md` exactly. Run `npm audit`,
+classify each finding (safe-bump / breaking-bump / fix-via-force / manual-review),
+and post the structured report via `add-comment`.
+
+Do not modify `package.json` or `package-lock.json`. Do not merge or label the PR.
+Recommendations only.
+```
+
+Then create the trigger label, compile, and push:
 
 ```bash
-# 1 · Create the trigger label first (silent failure otherwise):
 gh label create run-dependency-auditor --color FFB0B0 --description "Run the dependency-auditor skill on this PR"
-
-# 2 · Edit .github/workflows/my-workflow.md to:
-#     on:
-#       pull_request:
-#         types: [labeled]
-#         paths: ['**/package.json']
-#     # with an `if: github.event.label.name == 'run-dependency-auditor'` guard.
-
-# 3 · Compile + commit:
-gh aw compile
-git add .github/workflows/ && git commit -m "ci: compile dependency-auditor workflow"
+gh aw compile      # → .github/workflows/my-workflow.lock.yml
+git add .github/workflows/ && git commit -m "ci: wire dependency-auditor in CI"
 git push
 ```
+
+Open a PR touching any `package.json`, label it `run-dependency-auditor`, and watch the workflow comment a structured audit report.
+
+> 💡 **The release tag you just pushed is what your CI pins.** The `apm pack` → release tarball → `imports.with.packages` chain is the same mechanism another team would use to consume your skill — your CI just happens to be one of those consumers. Bump the tag, bump the pin: same flow as any versioned dependency.
+
+> 💡 **What is `shared/apm.md`?** A vendored gh-aw [shared workflow component](https://microsoft.github.io/apm/integrations/gh-aw/) that turns `packages:` into a real `apm install` step in your compiled workflow. The template ships it pre-vendored at [`.github/workflows/shared/apm.md`](../../.github/workflows/shared/apm.md). If you ever start a workflow from scratch in another repo, copy it once: `mkdir -p .github/workflows/shared && curl -sSL https://raw.githubusercontent.com/microsoft/apm/main/.github/workflows/shared/apm.md > .github/workflows/shared/apm.md`. See [`gh aw` reference: workflow lock file](https://github.github.com/gh-aw/reference/faq/#what-is-a-workflow-lock-file) for why the `.md` and `.lock.yml` both ship.
+
+> 💡 **Compose with kit primitives.** Add more lines under `packages:` — e.g., `DevExpGbb/zava-agent-config/plugins/secure-baseline#v5.0.1` to also load the security-baseline instructions alongside your auditor. Same import block, more primitives available to the agent.
 
 ---
 
