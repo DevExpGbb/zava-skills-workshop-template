@@ -205,7 +205,7 @@ That tarball is your skill bundle. Hand it to a teammate, they `apm install` it,
 
 ## 🚀 Automate the release (5 min)
 
-Now that you've seen the local flow, automate it. The release workflow runs the same `apm pack` on every tagged push:
+Now that you've seen the local flow, automate it. The [release workflow](../../.github/workflows/release.yml) runs the same `apm pack` on every tagged push:
 
 ```bash
 git add . && git commit -m "feat: docs-generator skill v0.1.0"
@@ -217,7 +217,7 @@ git push origin main --tags
 
 > 💡 **Tag collision warning.** Every track guide says `git tag v0.1.0`. If you ran Track 1 in the same repo and tagged `v0.1.0` already, this push will fail. Either delete the old tag (`git tag -d v0.1.0 && git push --delete origin v0.1.0`) or scope it: `v0.1.0-docs-generator`.
 
-The release workflow validates → packs → publishes a GitHub Release with the tarball attached.
+The [release workflow](../../.github/workflows/release.yml) validates → packs → publishes a GitHub Release with the tarball attached.
 
 ---
 
