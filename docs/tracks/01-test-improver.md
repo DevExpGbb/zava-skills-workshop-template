@@ -115,7 +115,7 @@ flowchart TD
 
 In the same chat where Genesis just emitted the design, prompt your harness:
 
-> Now use the genesis skill to implement the skill per our agreed design.
+> Now use the genesis skill to implement the skill per our agreed design. Place it at `.apm/skills/test-improver/`.
 
 That's it. Genesis takes over: it applies its own step-7b discipline (probe runtime, draft SKILL.md, validate against the design). Any installed instructions — like `prose-style.md` from `code-kit` — get loaded by the harness automatically; you don't need to remind Genesis what frontmatter shape to use.
 

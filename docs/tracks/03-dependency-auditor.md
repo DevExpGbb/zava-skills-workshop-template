@@ -135,7 +135,7 @@ flowchart TD
 
 In the same chat where Genesis just emitted the design, prompt your harness:
 
-> Now use the genesis skill to implement the skill per our agreed design.
+> Now use the genesis skill to implement the skill per our agreed design. Place it at `.apm/skills/dependency-auditor/`.
 
 That's it. Genesis takes over: it applies its own step-7b discipline (probe runtime, draft SKILL.md, validate against the design — including all four classifier branches and the read-only `allowed-tools` constraint). Any installed instructions — like `prose-style.md` from `code-kit` — get loaded by the harness automatically.
 
