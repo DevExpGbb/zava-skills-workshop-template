@@ -1,10 +1,16 @@
 {
   "name": "sample-app",
   "version": "0.1.0",
-  "description": "Workshop sample app — a deliberately under-tested calculator. Trainees build a skill to fill in the gaps.",
+  "description": "Workshop sample app — a deliberately under-tested, under-documented inventory + calculator service. Trainees build skills to fill in the gaps.",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.js",
+    "audit": "npm audit --json || true"
+  },
+  "dependencies": {
+    "lodash": "4.17.4",
+    "axios": "0.21.0",
+    "minimist": "0.0.8"
   }
 }

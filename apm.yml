@@ -21,8 +21,9 @@ dependencies:
     - DevExpGbb/zava-agent-config/plugins/ideate-kit#v5.0.1
     - DevExpGbb/zava-agent-config/plugins/review-kit#v5.0.1
     # Genesis — the design assistant for new skills. Run it via your IDE
-    # to scope your skill before writing SKILL.md.
-    - danielmeppiel/genesis#main
+    # to scope your skill before writing SKILL.md. Mirrored in DevExpGbb so
+    # the workshop installs cleanly under the org allowlist policy.
+    - DevExpGbb/genesis#main
   mcp: []
 
 scripts:
