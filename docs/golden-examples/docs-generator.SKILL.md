@@ -1,53 +1,46 @@
 ---
 name: docs-generator
-description: >-
-  Read JavaScript modules and emit Google-style JSDoc plus a README usage
-  section, deriving @throws and return semantics from the function body.
-  Never invents behavior.
-license: UNLICENSED
+description: |
+  Read a single TypeScript file under zava-storefront/lib/, insert JSDoc above every undocumented
+  exported function based ONLY on what the source shows, and append a "## Usage" section to
+  zava-storefront/README.md with one minimal example per exported function. Types, schemas, and
+  zod exports are out of scope.
+license: MIT
 allowed-tools: Read, Grep, Glob, Edit
 ---
 
 # docs-generator
 
-> Deterministic JSDoc + usage docs for under-documented modules. Source-grounded; no fabrication.
-
 ## When to use this skill
 
 Invoke when:
 
-- A source file under `sample-app/src/*.js` has exported functions without JSDoc above them
-- The user has asked for documentation, OR a `run-docs-generator` label is present on a PR
+- A source file under `zava-storefront/lib/*.ts` has exported functions without JSDoc above them
+- The user asks to "document `zava-storefront/lib/<file>.ts`"
 
-Do not invoke for: files where JSDoc already exists (use a separate doc-improver skill for refinement), test files, or generated code.
+Do not invoke for: JavaScript sources, files already fully documented, or files outside `zava-storefront/lib/`.
 
-## What this skill does
+## Steps
 
-1. **Read** the target source file end-to-end before writing anything.
-2. **Identify** exports lacking JSDoc.
-3. **Derive** the contract for each export by reading the body:
-   - `@param` types from usage (treat lodash/axios as their own types)
-   - `@returns` from the explicit return statements
-   - `@throws` from any `throw new Error(...)` statements — quote the message verbatim
-4. **Emit** Google-style JSDoc above each export. Never invent semantics; if unclear, use `@returns {*}` with a `// TODO: tighten type` comment.
-5. **Append** a "## Usage" section to `sample-app/README.md` (create the README if missing) with one minimal example per export.
+1. **Read** every **exported function declaration** in the target file (skip `export type`, `export const <Schema> = z.object(...)`, and re-exports). Note: parameter names + types, return type, any `throw` statements.
+2. **Insert** JSDoc directly above each exported function with `@param`, `@returns`, and `@throws` clauses **only for behaviors the source code makes explicit**. Do not invent error conditions, return shapes, or side effects. Do not document types, schemas, or zod exports.
+3. **Verify** no edits land outside the target file or `zava-storefront/README.md`.
+4. **Append** a `## Usage` section to `zava-storefront/README.md` (create the README if missing) with one minimal example per exported function. Examples must be valid TypeScript that imports from the documented file.
+5. **Emit** a one-line summary listing the documented exported functions.
 
 ## Outputs
 
-- Edited `sample-app/src/*.js` files with JSDoc inserted above each affected export
-- New or extended `sample-app/README.md`
-- Summary at `.skill-output/docs-generator-summary.md` listing exports documented
+- Edited `zava-storefront/lib/<file>.ts` with JSDoc inserted above each affected export
+- Extended `zava-storefront/README.md` with a `## Usage` section
+- Summary line: `Documented: addItem, removeItem, applyDiscount, computeTax, totalize`
 
 ## Constraints
 
-- Source-grounded only: every `@throws` must trace to a `throw` line; every `@returns` must trace to a `return` line
-- Style: Google JSDoc (NOT TSDoc, NOT NumPy). Pinned by the rule file at `.github/rules/jsdoc-style.md` if present
-- Idempotent: re-running on a file with full JSDoc must produce zero diff
+- Never describe behavior that is not in the source code
+- Never edit `zava-storefront/tests/`, `zava-storefront/app/`, `zava-storefront/package.json`, or any other `lib/` file
+- Never reformat or otherwise modify the body of any function — JSDoc only
+- If a behavior cannot be inferred from the code, omit the `@throws` / `@returns` line entirely
 
-## Examples
+## Example invocation
 
-```
-> Use the docs-generator skill on sample-app/src/inventory.js
-```
-
-Expected: 6 functions documented; `restock` has `@throws {Error} qty must be positive`; `reserve` documents boolean return semantics.
+> Use the docs-generator skill on `zava-storefront/lib/cart.ts`.

@@ -13,3 +13,6 @@ apm_modules/
 .agents/
 .github/agents/
 .github/instructions/
+
+# Workshop target — cloned in §0.2 of README, not vendored
+zava-storefront/

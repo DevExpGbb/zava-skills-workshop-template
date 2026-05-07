@@ -1,67 +1,81 @@
 # Track 1 · `test-improver`
 
-> Build a skill that finds untested branches in `sample-app/src/calculator.js`, generates the missing tests, runs `npm test`, and iterates until green.
+> **You are not fixing the app. You are authoring a Skill** that finds untested branches in `zava-storefront/lib/cart.ts` (and friends), proposes the missing tests, runs `npm test`, and iterates until green.
 
-⏱️ **45 min** · 🎯 **PROSE focus:** **S**kills + **R**eliability via test loops
+⏱️ **90 min**
+
+---
+
+## 📚 Theory anchor
+
+- **Live:** [Architectural Patterns Rosetta Stone — *Verification Loops*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+
+**Local fallback (3 sentences):** A Skill is a *narrowly-scoped procedure* an agent invokes — not a generalist prompt. The PROSE constraint *Reduced Scope* tells us the test-improver should refuse anything other than "fill missing test coverage in this file"; *Safety Boundaries* keep it from editing source under test. The verification loop pattern (write → run → read failure → refine) is what turns "Copilot drafted some tests" into "the test suite actually passes."
 
 ---
 
 ## 🔍 Discover the problem
 
-Open [`sample-app/src/calculator.js`](../../sample-app/src/calculator.js) and [`sample-app/tests/calculator.test.js`](../../sample-app/tests/calculator.test.js).
+Open these three files:
 
-Notice:
+- [`zava-storefront/lib/cart.ts`](../../zava-storefront/lib/cart.ts) · `addItem`, `applyDiscount`, `computeTax`, `totalize`
+- [`zava-storefront/lib/orders.ts`](../../zava-storefront/lib/orders.ts) · `createOrder`, `findOrder`, `fulfillmentMessage`
+- [`zava-storefront/tests/cart.test.ts`](../../zava-storefront/tests/cart.test.ts) · note the comment block at the bottom listing **uncovered branches**
 
-- `calculator.js` exports six functions (`add`, `subtract`, `multiply`, `divide`, `power`, `factorial`)
-- `calculator.test.js` tests **one branch of one function**
-- `divide` throws on zero · `power` recurses on negative exponents · `factorial` throws on negatives — none of these are tested
+Now ask your AI chat assistant (no Skill, no extra context) the naïve prompt:
 
-Now ask Copilot Chat (no skill, no context) the naïve prompt:
-
-> "Add tests for calculator.js"
+> "Add tests for `lib/cart.ts`."
 
 Observe:
 
-- It probably uses Jest syntax (we use `node:test`)
-- It probably misses the `Error` paths
-- Different developers get different results
+- It might use Jest syntax — but this app uses **Vitest**.
+- It probably misses `applyDiscount` edge cases (`VIP25` threshold, unknown codes).
+- Run it twice. Different drafts each time.
 
-**This is the drift PROSE skills exist to eliminate.** Let's design a skill that doesn't drift.
+That drift is what a Skill removes.
 
 ---
 
 ## 🧠 Design with Genesis (5 min)
 
-Genesis is pinned in `apm.yml` as a design assistant — invoke it instead of writing `SKILL.md` from scratch.
+[`genesis`](https://github.com/DevExpGbb/genesis) is pinned in `apm.yml` as a design assistant. Invoke it before writing any `SKILL.md`.
 
-In your IDE (Copilot CLI / Claude Code / Codex / Cursor), summon it:
+In your IDE (your agent harness — Copilot CLI, Claude Code, Codex, Cursor, OpenCode all work), summon Genesis. **Verify it's loaded first** — type `/genesis` and confirm autocomplete or an acknowledgment from the persona. If nothing happens, run `apm install` again and check `.agents/skills/genesis/` exists.
 
 ```
 /genesis I want a test-improver skill. It must:
-- Read source files under sample-app/src/
-- Detect functions whose branches are not covered by tests/
-- Generate node:test cases (NOT Jest) for the missing branches
-- Run `npm test` after each iteration
+- Target a single source file under zava-storefront/lib/
+- Detect functions whose branches/error paths are uncovered by zava-storefront/tests/
+- Generate vitest tests for the missing branches (NOT Jest)
+- Run `npm test --prefix zava-storefront` after each iteration
 - Stop when all branches are green or after 5 iterations
-- Always emit one final summary comment listing what it added
+- Emit one final summary comment listing what it added
+
+Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
+  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
 ```
 
-Genesis will return a layout proposal — sections, contracts, acceptance gate. **Read it before coding.** That doc *is* your spec.
-
-📚 If Genesis isn't responding, check `apm install` succeeded and your harness picked up `.apm/skills/genesis/`.
+Genesis returns a design (with the ASCII diagram). **Read it before coding.** That doc *is* your spec.
 
 ---
 
-## 🛠️ Build (20 min)
+## 🛠️ Build (25 min)
 
-Open `.apm/skills/my-skill/SKILL.md` (rename the folder to `test-improver/` if you like) and fill it in following Genesis's layout.
+Open `.apm/skills/my-skill/SKILL.md` and fill it in following Genesis's design. Then rename the **folder**:
 
-**Hard rules** (cribbed from `code-kit/instructions/prose-style.md` after `apm install`):
+```bash
+git mv .apm/skills/my-skill .apm/skills/test-improver
+```
 
-- **Frontmatter:** `name`, `description`, `license`, `allowed-tools`. Keep `allowed-tools` minimal — `Read, Grep, Glob, Bash(node:*), Bash(npm:*), Edit`
-- **"When to use this skill":** specific trigger conditions, no fluff
-- **Steps:** 3–7 imperative bullets
-- **Outputs:** what files / comments / labels result
+> 💡 **Skill discovery binds on the frontmatter `name:` field** (`name: test-improver`). The folder name is convention only — but keep them aligned to avoid grep confusion later.
+
+**Ship-check rules** (from `code-kit/instructions/prose-style.md` after `apm install`):
+
+- **Frontmatter:** `name`, `description`, `license`, `allowed-tools`. Keep `allowed-tools` minimal — e.g. `Read, Grep, Glob, Bash(npm:*), Edit`.
+- **When to use this skill:** specific trigger conditions, no fluff.
+- **Steps:** 3–7 imperative bullets.
+- **Outputs:** which files / comments / labels result.
 
 📁 Stuck? Peek at [`docs/golden-examples/test-improver.SKILL.md`](../golden-examples/test-improver.SKILL.md) — but only after you've written your own first draft.
 
@@ -71,23 +85,23 @@ Open `.apm/skills/my-skill/SKILL.md` (rename the folder to `test-improver/` if y
 
 In your IDE, drive the skill:
 
-> "Use the test-improver skill on sample-app/"
+> "Use the test-improver skill on `zava-storefront/lib/cart.ts`."
 
 Watch the agent:
 
-1. Read `calculator.js`
-2. Compare against `calculator.test.js`
-3. Generate new tests under `tests/`
-4. Run `npm test`
-5. Iterate
+1. Read `cart.ts`.
+2. Compare against `tests/cart.test.ts`.
+3. Generate new vitest cases (e.g. for `VIP25`, `WELCOME10`, `computeTax` regions).
+4. Run `npm test --prefix zava-storefront`.
+5. Iterate.
 
-When the loop converges, run yourself:
+When the loop converges, run it yourself:
 
 ```bash
-cd sample-app && npm test
+npm test --prefix zava-storefront
 ```
 
-You should see ~12+ tests passing, with `divide`, `power`, `factorial` covered.
+You should see new tests covering the cases listed in `cart.test.ts`'s comment block.
 
 ---
 
@@ -96,31 +110,61 @@ You should see ~12+ tests passing, with `divide`, `power`, `factorial` covered.
 ```bash
 apm run validate          # gh skill publish --dry-run .apm
 git add . && git commit -m "feat: test-improver skill v0.1.0"
-git tag v0.1.0 && git push origin main --tags
+
+# If you ran multiple tracks in the same repo, scope the tag:
+git tag v0.1.0-test-improver   # or just v0.1.0 if this is your only track
+git push origin main --tags
 ```
+
+> 💡 **Tag collision warning.** Every track guide says `git tag v0.1.0`. If you re-run or run multiple tracks in the same repo, scope per-track (`v0.1.0-test-improver`) or delete the old tag first (`git tag -d v0.1.0 && git push --delete origin v0.1.0`).
 
 The release workflow (`.github/workflows/release.yml`) packs your skill and publishes a GitHub Release with the tarball attached.
 
 ---
 
-## 🌐 Automate (5 min)
+## 🌐 Automate (15 min)
 
-Open `.github/workflows/my-workflow.md`, retitle it `test-improver-on-pr.md`, and adjust the prompt to call your skill on any PR labeled `run-test-improver`.
-
-Compile + commit:
+Workshop scaffold (do these in order — silent failures otherwise):
 
 ```bash
-gh aw compile
-git add .github/workflows/ && git commit -m "ci: compile workflow"
+# 1 · Create the trigger label first. Without it, the workflow's `on: labeled`
+#     stanza never fires and you'll think your Skill is broken.
+gh label create run-test-improver --color B0E0FF --description "Run the test-improver skill on this PR"
+
+# 2 · Edit .github/workflows/my-workflow.md so the on: stanza watches that label:
+#     on:
+#       pull_request:
+#         types: [labeled]
+#     # plus an `if: github.event.label.name == 'run-test-improver'` guard
+#     # in the job.
+
+# 3 · Compile (gh aw produces a real .lock.yml from the .md you edited):
+gh aw compile      # → .github/workflows/my-workflow.lock.yml
+git add .github/workflows/ && git commit -m "ci: compile test-improver workflow"
 git push
 ```
 
-Open a PR that touches `sample-app/src/calculator.js`, label it `run-test-improver`, and watch your skill execute on the PR — that's the inner→outer loop transition.
+Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-test-improver`, and watch your skill execute on the PR — that's the inner→outer loop transition.
+
+---
+
+## 🌍 Platform payoff (your Skill in someone else's repo)
+
+After §6 of the README, your team-mate can pin your tarball in *their* repo:
+
+```yaml
+# their apm.yml
+dependencies:
+  apm:
+    - <your-org>/<your-repo>#v0.1.0-test-improver
+```
+
+`apm install` in their repo gets them the same `SKILL.md`, the same `allowed-tools` boundary, the same workflow scaffold. Versioned, reviewable, composable — **that's the package-manager-for-skills claim**.
 
 ---
 
 ## 🎓 What you learned
 
-- **Genesis = design before code.** You wrote a spec, then implemented to it.
-- **Skills are PROSE-shaped.** Every section has a job; no bloat, no duplication.
-- **Local-first, CI second.** Same skill, same agent, same outcome — whether you run it in your IDE or as a `gh aw` job.
+- **Genesis = design before code.** You wrote a spec (with an ASCII architecture diagram), then implemented to it.
+- **Reduced Scope is real.** Your Skill targets *one file pattern*, not "test the codebase."
+- **Local-first, CI second.** Same Skill, same agent, same outcome — whether you run it in your IDE or as a `gh aw` job.

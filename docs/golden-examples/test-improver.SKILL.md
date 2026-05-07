@@ -1,52 +1,44 @@
 ---
 name: test-improver
-description: >-
-  Find untested branches in JavaScript source files under sample-app/src/,
-  generate node:test cases for the missing branches, and iterate with
-  npm test until all branches are covered or 5 iterations elapse.
-license: UNLICENSED
-allowed-tools: Read, Grep, Glob, Edit, Bash(node:*), Bash(npm:*)
+description: |
+  Find untested branches in a single TypeScript source file under zava-storefront/lib/,
+  generate the missing vitest cases, and iterate `npm test --prefix zava-storefront` until green.
+license: MIT
+allowed-tools: Read, Grep, Glob, Bash(npm:*), Edit
 ---
 
 # test-improver
-
-> Spec-driven test generation for under-tested JavaScript modules. Loops on `npm test` until convergence.
 
 ## When to use this skill
 
 Invoke when:
 
-- A source file under `sample-app/src/*.js` has exported functions
-- The corresponding `tests/*.test.js` covers fewer than 80% of the source's branches
-- The user has explicitly asked for test improvement, OR a CI workflow has triggered with the `run-test-improver` label
+- A source file under `zava-storefront/lib/*.ts` has exported functions
+- The matching `zava-storefront/tests/<basename>.test.ts` lacks coverage for `throw` paths, conditional branches, or boundary cases
+- The user asks to "improve test coverage on `zava-storefront/lib/<file>.ts`"
 
-Do not invoke for: TypeScript sources (this version targets JS only), files outside `sample-app/`, or non-test changes.
+Do not invoke for: JavaScript sources, files outside `zava-storefront/lib/`, application route handlers under `zava-storefront/app/`, or non-test changes.
 
-## What this skill does
+## Steps
 
-1. **Read** every `.js` file under `sample-app/src/` and identify exported functions.
-2. **Compare** against tests in `sample-app/tests/` — list functions whose error paths, branch alternatives, or boundary cases are uncovered.
-3. **Generate** new `node:test` cases (NOT Jest) using `import { test } from "node:test"` and `import assert from "node:assert/strict"`. Append to existing test files or create new ones following the pattern `<source>.test.js`.
-4. **Run** `cd sample-app && npm test`. If failures, refine and retry.
-5. **Stop** when all error paths have at least one passing test, OR after 5 iterations — whichever comes first.
-6. **Emit** a summary listing what was added: file path, function covered, branch type (error / boundary / alternative).
+1. **Read** the target source file under `zava-storefront/lib/` and identify exported functions, conditional branches, and `throw` statements.
+2. **Compare** against the matching `tests/<basename>.test.ts`. List branches/error paths whose code paths are not asserted in any `it(...)` block.
+3. **Author** new vitest `describe`/`it` blocks for the missing branches in the existing test file. Use `vitest`, not `node:test` or `jest`. Cover one missing branch per `it` block.
+4. **Run** `npm test --prefix zava-storefront`. If failures, refine and retry. Stop after 5 iterations or when all branches are green.
+5. **Emit** one summary comment listing each function name and the branches now covered.
 
 ## Outputs
 
-- New or extended test files under `sample-app/tests/`
-- One markdown summary written to `.skill-output/test-improver-summary.md` listing changes
-- Exit code 0 if all branches covered; non-zero with summary if iteration cap hit
+- Extended `zava-storefront/tests/<basename>.test.ts` with new `describe`/`it` blocks
+- One summary comment of the form: `Covered: addItem (quantity overflow), applyDiscount (VIP25 below threshold, FREESHIP, unknown code), computeTax (DE, US-CA, US-OR, default).`
 
 ## Constraints
 
-- Never modify files in `sample-app/src/` — this skill is read-only against the source under test
-- Match the existing test style (node:test, ESM imports, `assert/strict`)
-- Tests must be deterministic — no `Math.random`, no `Date.now()` without injected mocks
+- Never modify files in `zava-storefront/lib/` — this skill is read-only against the source under test
+- Never modify route handlers under `zava-storefront/app/`
+- Never change `zava-storefront/package.json` or test config
+- Stop after 5 iterations even if branches remain — escalate via the summary comment
 
-## Examples
+## Example invocation
 
-```
-> Use the test-improver skill on sample-app/
-```
-
-Expected: ~12+ new tests, divide-by-zero covered, factorial-of-negative covered, power-of-negative-exponent covered.
+> Use the test-improver skill on `zava-storefront/lib/cart.ts`.

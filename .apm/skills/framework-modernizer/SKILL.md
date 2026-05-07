@@ -15,7 +15,7 @@ description: >-
   Express 5 migration guide. It does NOT run the consumer's tests; it
   emits a plan the team executes.
 license: UNLICENSED
-allowed-tools: Read, Grep, Glob, Edit, Bash
+allowed-tools: Read, Grep, Glob, Edit
 ---
 
 # framework-modernizer
@@ -87,7 +87,7 @@ This skill went through the full [Genesis](https://github.com/DevExpGbb/genesis)
 
 1. **Step 1 — intent.** Single capability, single framework pair. Don't try to migrate 5 frameworks in one skill.
 2. **Step 2 — components.** PIPELINE pattern: scan → classify → autofix → plan. No fan-out, no panel.
-3. **Step 5 — PROSE compliance.** The catalog is **Engineering** (context the orchestrator loads), the rubric is **Rules** (decision boundary), the skill itself is **Skills**.
+3. **Step 5 — Architecture artifacts.** Three files do the heavy lifting: the **catalog** (cited breaking changes) is loaded as context; the **rubric** (SAFE/AUTOFIX/MANUAL classifier) is the decision boundary; the **skill** orchestrates them. The eval runner is the regression harness — change a regex, watch CI.
 
 ## Evals
 

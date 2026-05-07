@@ -36,13 +36,13 @@ timeout-minutes: 15
 
 You are running the **`my-skill`** Agent Skill (defined in
 `.apm/skills/my-skill/SKILL.md`) against this repository's
-`sample-app/` directory.
+`zava-storefront/` directory.
 
 ## Steps
 
-1. Locate `sample-app/` at the repo root. If missing, post a comment
+1. Locate `zava-storefront/` at the repo root. If missing, post a comment
    explaining and stop.
-2. Invoke the `my-skill` skill against `sample-app/`. Follow its
+2. Invoke the `my-skill` skill against `zava-storefront/`. Follow its
    `SKILL.md` instructions exactly.
 3. Summarize what the skill did in **3–5 bullet points**:
    - Files read
@@ -53,6 +53,6 @@ You are running the **`my-skill`** Agent Skill (defined in
 
 ## Constraints
 
-- Do **not** modify files outside `sample-app/`.
+- Do **not** modify files outside `zava-storefront/`.
 - Do **not** attempt to merge or label the PR.
 - Keep the summary comment under 300 words.

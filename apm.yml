@@ -2,7 +2,7 @@ name: my-workshop-skill
 version: 0.1.0
 description: >-
   Workshop trainee starter — fork this template, build a skill in
-  .apm/skills/my-skill/, run it locally against sample-app/, then publish
+  .apm/skills/my-skill/, run it locally against zava-storefront/, then publish
   via gh skill + apm pack on tag.
 author: <your name>
 license: UNLICENSED
@@ -23,7 +23,8 @@ dependencies:
     # Genesis — the design assistant for new skills. Run it via your IDE
     # to scope your skill before writing SKILL.md. Mirrored in DevExpGbb so
     # the workshop installs cleanly under the org allowlist policy.
-    - DevExpGbb/genesis#main
+    # Pinned to v0.1.0 so every trainee gets identical /genesis behavior.
+    - DevExpGbb/genesis#v0.1.0
   mcp: []
 
 scripts:
