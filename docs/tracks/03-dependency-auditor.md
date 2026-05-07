@@ -134,6 +134,16 @@ Then in your harness:
 
 Expected output: `abandoned-pkg` lands under **Manual review**, with rationale `fixAvailable === false — no automated remediation; investigate upstream`. If it lands under safe-bump or breaking-bump instead, your classifier rubric is mis-ordered — fix the SKILL.md and retry. This is exactly the kind of off-happy-path case the eval fixture in §Validate covers; **see it once by hand here so you trust the eval afterwards**.
 
+### Run the deterministic eval (regression check)
+
+Once your Skill produces a clean live report and a clean MANUAL-REVIEW report by hand, run the harness — it asserts the exact classifications + fix versions the rubric should produce, including all four branches (`safe-bump`, `breaking-bump`, `fix-via-force`, `manual-review`):
+
+```bash
+apm run eval-track-3       # → ✅ dependency-auditor eval PASSED
+```
+
+Mirrors Track 4's `evals/run.js` pattern — pure Node, no deps, runs in <2s. Read [`docs/golden-examples/dependency-auditor.evals/README.md`](../golden-examples/dependency-auditor.evals/README.md) for the maintenance contract (the rubric in your SKILL.md and the harness's `classify()` function are a single source of truth split across two files; they move together).
+
 ---
 
 ## 📦 Package + publish (15 min)
