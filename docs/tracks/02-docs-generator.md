@@ -102,7 +102,7 @@ Expect:
 git diff --name-only | grep -vE '^(zava-storefront/lib/cart\.ts|zava-storefront/README\.md)$'
 
 # 2 · TypeScript still compiles — comments don't break inference
-npx --prefix zava-storefront tsc --noEmit -p zava-storefront/tsconfig.json
+(cd zava-storefront && npx tsc --noEmit)
 
 # 3 · Tests still pass — function bodies untouched
 npm test --prefix zava-storefront
@@ -151,12 +151,20 @@ Wire `.github/workflows/my-workflow.md` to run the Skill on PRs touching `zava-s
 #     workflow doesn't fire and you'll think your Skill is broken):
 gh label create run-docs-generator --color B0E0FF --description "Run the docs-generator skill on this PR"
 
-# 2 · Edit .github/workflows/my-workflow.md so the on: stanza watches that label:
-#     on:
-#       pull_request:
-#         types: [labeled]
-#     # plus an `if: github.event.label.name == 'run-docs-generator'` guard
-#     # in the job.
+# 2 · Edit .github/workflows/my-workflow.md. Concrete diff against the scaffold:
+#
+#       on:
+#         pull_request:
+#     -     types: [labeled]
+#     +     types: [labeled]
+#     +     paths: ['zava-storefront/lib/**']
+#         workflow_dispatch:
+#         roles: [admin, maintainer, write]
+#
+#       if: |
+#     -   (github.event_name == 'pull_request' && github.event.label.name == 'run-my-skill')
+#     +   (github.event_name == 'pull_request' && github.event.label.name == 'run-docs-generator')
+#         || github.event_name == 'workflow_dispatch'
 
 # 3 · Compile + commit:
 gh aw compile      # writes .github/workflows/my-workflow.lock.yml

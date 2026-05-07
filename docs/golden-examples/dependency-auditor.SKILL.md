@@ -31,14 +31,15 @@ Do not invoke for: source code changes, lockfile-only changes, or repos without 
        "<package>": {
          "severity": "low | moderate | high | critical",
          "range": "<vulnerable semver range>",
-         "fixAvailable": false | { "name": "<pkg>", "version": "<x.y.z>", "isSemVerMajor": true|false }
+         "fixAvailable": false | true | { "name": "<pkg>", "version": "<x.y.z>", "isSemVerMajor": true|false }
        }
      }
    }
    ```
 4. For each entry under `vulnerabilities`, classify:
    - **safe-bump** — `fixAvailable` is an object AND `fixAvailable.isSemVerMajor === false`
-   - **breaking-bump** — `fixAvailable.isSemVerMajor === true`
+   - **breaking-bump** — `fixAvailable` is an object AND `fixAvailable.isSemVerMajor === true`
+   - **fix-via-force** — `fixAvailable === true` (boolean): a fix exists but `npm audit` did not return a version because the bump is top-level / requires `npm audit fix --force`. Treat as breaking until inspected.
    - **manual-review** — `fixAvailable === false` (or missing)
 5. Produce the report below. Top-5 critical/high findings only in the headline table; full list in a collapsible details block.
 
@@ -67,7 +68,8 @@ Do not invoke for: source code changes, lockfile-only changes, or repos without 
 
 - Never modify any `package.json` — this skill outputs recommendations, not patches
 - Never run `npm audit fix` or `--force`
-- Never invent CVE IDs, advisory URLs, or patched versions
+- Never invent CVE IDs, advisory URLs, or patched versions. If `fixAvailable === true` (boolean), `fix version` is unknown — leave it blank or write `(--force required)`, never guess.
+- `npm audit` exits 1 when vulnerabilities are present. Use `npm audit --json || true`, then read `metadata.vulnerabilities.total` to detect the empty case.
 - The report must be valid markdown that pastes cleanly into a PR comment
 
 ## Example invocation

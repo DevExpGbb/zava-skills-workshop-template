@@ -66,14 +66,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Install the gh-skill extension if missing (preview surface; matches the
+          # README §0 path). Avoids sudo/apt mutation of the runner.
           if ! gh skill --help &>/dev/null; then
-            echo "gh skill not available, attempting upgrade of gh CLI..."
-            sudo install -dm 755 /etc/apt/keyrings
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-            sudo chmod 644 /etc/apt/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt-get update -y
-            sudo apt-get install -y gh
+            gh extension install github/gh-skill
           fi
           if [ ! -d ".apm/skills" ]; then
             echo "::warning::No skills found at .apm/skills/ — nothing to validate."
@@ -83,6 +79,13 @@ jobs:
 
       - name: Pack skill (APM tarball)
         run: apm pack --offline --archive
+
+      - name: Audit packed skill (hidden-character / homoglyph guard)
+        run: |
+          # Hard-fail on any hidden-character / homoglyph finding. apm pack only
+          # warns; a release pipeline must not ship smuggled characters in a
+          # skill that other repos will execute. See `apm audit --help`.
+          apm audit --ci
 
       - name: Stage release assets
         id: stage

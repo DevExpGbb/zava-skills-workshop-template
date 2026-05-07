@@ -52,6 +52,24 @@ cd /tmp/wf-preflight
 ( cd zava-storefront && npm pkg delete dependencies.lodash )
 ```
 
+## 3a · Track 3 audit fixture is wired
+
+Track 3 depends on `zava-storefront/security-fixtures/` actually surfacing vulnerable deps. If something has been bumped or the fixture was tampered with, the whole track silently teaches the wrong rubric:
+
+```bash
+cd /tmp/wf-preflight/zava-storefront/security-fixtures
+npm install --no-audit --no-fund >/dev/null 2>&1
+npm audit --json 2>/dev/null | jq -r \
+  '.metadata.vulnerabilities | "high=\(.high) critical=\(.critical) total=\(.total)"'
+# Expected: high=1 critical=2 total=3   (1 high axios, critical lodash + minimist)
+# If counts diverge: someone bumped the fixture deps. Restore from git or skip Track 3.
+
+# Spot-check that fixAvailable is well-formed (object OR boolean true OR false):
+npm audit --json 2>/dev/null | jq -r \
+  '.vulnerabilities | to_entries[] | "\(.key)\t\(.value.fixAvailable | type)"'
+# Expected: 3 lines, each with type "object" or "boolean".
+```
+
 ## 4 · Workflow labels (per track you plan to run)
 
 `gh aw`'s labeled-PR trigger silently no-ops if the label doesn't exist. Pre-create labels in the **trainee org** if you can:

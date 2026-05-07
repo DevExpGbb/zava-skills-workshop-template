@@ -23,8 +23,10 @@ Run the raw tool yourself first. Use `--prefix` so cwd doesn't matter (and so yo
 
 ```bash
 npm install --prefix zava-storefront/security-fixtures --no-audit --no-fund
-npm audit --prefix zava-storefront/security-fixtures
+npm audit --prefix zava-storefront/security-fixtures || true
 ```
+
+> 💡 **`npm audit` exits non-zero when vulnerabilities are present** (i.e., always on this fixture). Append `|| true` in shell, or read `metadata.vulnerabilities.total` from `--json` — never trust the exit code alone in your Skill or in CI. Chaining with `&&` will short-circuit the rest of your pipeline.
 
 You'll see a wall of advisories — `lodash` prototype pollution, `axios` SSRF, `minimist`. Now ask your AI chat assistant:
 
@@ -48,7 +50,11 @@ A Skill closes that gap.
 - Parse the JSON and rank vulnerabilities by severity (critical > high > moderate > low)
 - For each entry under the top-level `vulnerabilities` object, classify the recommendation:
     safe-bump      → fixAvailable is an object AND fixAvailable.isSemVerMajor === false
-    breaking-bump  → fixAvailable.isSemVerMajor === true
+    breaking-bump  → fixAvailable is an object AND fixAvailable.isSemVerMajor === true
+    fix-via-force  → fixAvailable === true (boolean): a fix exists but npm did not
+                     return a target version because the bump is at the top level
+                     and requires `npm audit fix --force`. Treat as breaking until
+                     a human inspects.
     manual-review  → fixAvailable === false (or missing)
 - Emit a markdown report: top 5 critical findings, recommended bumps, and a "manual review" list
 - Refuse to modify package.json itself — the Skill's output is a recommendation, not a code change
@@ -57,7 +63,7 @@ Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
   User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
 ```
 
-> 💡 **Schema reference (npm 10+).** `npm audit --json` returns `{ auditReportVersion, vulnerabilities, metadata }`. Each entry under `vulnerabilities` exposes `severity`, `range` (vulnerable range), and `fixAvailable` — either `false`, or `{ name, version, isSemVerMajor }`. Classify on `fixAvailable`, not on legacy `patched_versions`.
+> 💡 **Schema reference (npm 10+).** `npm audit --json` returns `{ auditReportVersion, vulnerabilities, metadata }`. Each entry under `vulnerabilities` exposes `severity`, `range` (vulnerable range), and `fixAvailable` — one of `false`, `true` (boolean: requires `--force`), or `{ name, version, isSemVerMajor }`. Classify on `fixAvailable`, not on legacy `patched_versions`. The boolean-`true` shape is rare on this fixture (today's npm registry returns objects for all three baked-in deps), but real audits across many packages will produce it — handle it.
 
 ---
 
