@@ -128,7 +128,7 @@ Review the output node-for-node against the design diagram — especially the Sa
 
 The high-leverage moves aren't tweaks to the *original* prompt — they're new asks that build on what Genesis just shipped. Each one shows Genesis applying its own discipline to a real evolutionary need:
 
-- **Add evals.** *"Use the genesis skill to add evals for this skill."* Genesis proposes the eval harness — the structured oracle that turns "never invent behavior" from a vibe into a regression test.
+- **Add real behavior evals** *(the agentskills.io kind)*. *"Use the genesis skill to add evals for this skill."* Genesis applies its step-6 EVALS PLAN: 2-3 content evals where each prompt runs **twice** — with the skill loaded and without it — so the value delta is measurable (does the skill actually keep "never invent behavior" honest, or does the LLM do that on its own?). Plus ~20 trigger evals (8-10 should-trigger + 8-10 near-miss, 60/40 train/val) for the dispatch description. Output: `evals/evals.json` + `evals/triggers.json`. Per the spec, **assertions are added after the first run** — iteration 1 explores, iteration 2 hardens. Ship gate: `with_skill` PASS AND measurable delta vs `without_skill`.
 - **Make it run in CI/CD.** *"Use the genesis skill to make this run in CI/CD."* Genesis proposes a [`gh-aw`](https://githubnext.com/projects/agentic-workflows/) agentic workflow — paths filter on `lib/*.ts`, the same skill that runs in your IDE now opening JSDoc PRs automatically.
 - **Modularize the specialist personas.** *"Use the genesis skill to modularize the specialist personas as a separate apm package."* Genesis proposes a package split — pulls the docs-style guidance into its own pinnable APM package so review-kit and other consumers can share it.
 
@@ -172,11 +172,11 @@ Steps 1 and 4 should print **nothing** (or only blank lines). If step 1 lists `t
 
 > 📌 **This is the discipline differentiator.** Tracks 1 and 3 have natural oracles (`npm test`, `npm audit --json`). Track 2's oracle is *you, plus three commands*. Without it, "never invent behavior" is a vibe — a customer auditor will not accept that.
 
-> 🧭 **When do I need an oracle vs. an eval vs. neither?**
+> 🧭 **When do I need an oracle vs. behavior evals vs. neither?**
 > - **Neither** — when the Skill's output is *prose for humans* and "good enough" is judged by the reader (e.g. release-notes-summarizer). Just ship it; let PR review be the loop.
 > - **Oracle** — when the Skill's output is *deterministic and check-with-shell-commands* (file scope, type compile, test pass, comment-only diff). Cheap, repeatable, runs every invocation. Use this when "did the Skill stay in its lane?" must be answered in seconds.
-> - **Eval** — when the Skill's output is *judgement under variance* (classification, ranking, structured plan). You need a fixture set with expected outcomes (Track 3's `dependency-auditor` and Track 4's `framework-modernizer` ship one). Run on every change to the Skill's prompt or rubric, not every invocation.
-> Most banking-grade Skills end up needing both: oracle to gate the run, eval to gate the prompt.
+> - **Behavior evals** *(the [agentskills.io](https://agentskills.io/skill-creation/evaluating-skills) kind)* — when you need to prove the *Skill itself* adds value over the bare LLM, not just that the output passed an oracle. Each case runs **twice** (with_skill vs without_skill). Output is graded by script assertions + LLM-judge. Ship gate: with_skill PASS AND measurable delta vs without_skill. Run when you change the SKILL.md body, the dispatch description, or the rubric — NOT every invocation. Scaffold via Genesis's step-6 EVALS PLAN (`evals/evals.json` + `evals/triggers.json`). See Track 4's framework-modernizer and Track 3's dependency-auditor for shipped examples.
+> Most banking-grade Skills end up needing both: oracle to gate the run, behavior evals to gate the prompt.
 
 ---
 

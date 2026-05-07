@@ -86,11 +86,11 @@ const expected = loadExpected();
 
 if (actual === expected) {
   const count = actual.split('\n').filter(Boolean).length;
-  console.log(`✅ framework-modernizer eval PASSED (${count} findings match expected)`);
+  console.log(`✅ framework-modernizer catalog regression PASSED (${count} findings match expected)`);
   process.exit(0);
 }
 
-console.log('❌ framework-modernizer eval FAILED');
+console.log('❌ framework-modernizer catalog regression FAILED');
 console.log('--- expected ---');
 console.log(expected);
 console.log('--- actual ---');

@@ -91,10 +91,9 @@ This skill went through the full [Genesis](https://github.com/DevExpGbb/genesis)
 
 ## Evals
 
-Run against the fixture:
+Two layers, each catching different failures (see [`evals/README.md`](evals/README.md) for the full recipe):
 
-```bash
-node .apm/skills/framework-modernizer/evals/run.js
-```
+1. **Behavior evals** ([`evals/evals.json`](evals/evals.json), [`evals/triggers.json`](evals/triggers.json)) — inference-based, per [agentskills.io spec](https://agentskills.io/skill-creation/evaluating-skills). Each case runs twice (with_skill / without_skill); the value delta is the evidence. Manual / harness-driven; not in CI.
+2. **Catalog regression test** ([`evals/run.js`](evals/run.js)) — pure-Node script that locks the catalog regexes against a deliberate fixture. CI-friendly; exits non-zero on drift.
 
-The fixture is a deliberate Express-4 mini-app at `.apm/skills/framework-modernizer/evals/fixtures/express4-app/` with **8 known breaking patterns** (3 SAFE, 3 AUTOFIX, 2 MANUAL). The expected findings are checked-in at `evals/expected/findings.txt`. The runner diffs actual vs expected and exits non-zero on mismatch. See [`evals/README.md`](evals/README.md).
+Both layers were scaffolded via the [Genesis](https://github.com/DevExpGbb/genesis) skill.

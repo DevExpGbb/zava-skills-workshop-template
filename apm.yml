@@ -46,11 +46,16 @@ scripts:
   # Validate against the open agent-skills.io spec before publishing.
   validate: gh skill publish --dry-run .apm
 
-  # Track 3 trainees: run the dependency-auditor golden eval against
-  # zava-storefront/security-fixtures/. Catches rubric drift when the
-  # npm advisory database evolves. See README in that folder.
-  eval-track-3: node docs/golden-examples/dependency-auditor.evals/run.js
+  # Track 3 trainees: run the dependency-auditor RUBRIC REGRESSION TEST
+  # against zava-storefront/security-fixtures/. Catches rubric drift when
+  # the npm advisory database evolves OR when classify() is edited
+  # without updating the expected file. NOT a behavior eval — see the
+  # agentskills.io-style behavior evals at evals.json + triggers.json
+  # (Layer 1) in that folder. README documents both layers.
+  regression-track-3: node docs/golden-examples/dependency-auditor.evals/run.js
 
-  # Track 4 trainees: run the framework-modernizer eval (regex catalog
-  # vs deliberate fixture). Same shape as eval-track-3.
-  eval-track-4: node .agents/skills/framework-modernizer/evals/run.js
+  # Track 4 trainees: run the framework-modernizer CATALOG REGRESSION
+  # TEST (regex catalog vs deliberate fixture). Same Layer-2 shape as
+  # regression-track-3. Behavior evals live at evals/evals.json +
+  # evals/triggers.json (Layer 1).
+  regression-track-4: node .agents/skills/framework-modernizer/evals/run.js

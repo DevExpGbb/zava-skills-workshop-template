@@ -89,7 +89,7 @@ function diff(label, actual, expected) {
   return false;
 }
 
-console.log('dependency-auditor eval');
+console.log('dependency-auditor rubric regression test');
 
 // 1. Live audit against the security-fixtures tree.
 console.log('\n[1/2] Live npm audit on zava-storefront/security-fixtures/');
@@ -127,11 +127,11 @@ const syntheticExpected = loadExpected(EXPECTED_SYNTHETIC);
 const syntheticPass = diff('synthetic', syntheticActual, syntheticExpected);
 
 if (livePass && syntheticPass) {
-  console.log('\n✅ dependency-auditor eval PASSED');
+  console.log('\n✅ dependency-auditor rubric regression PASSED');
   process.exit(0);
 }
-console.log('\n❌ dependency-auditor eval FAILED');
+console.log('\n❌ dependency-auditor rubric regression FAILED');
 console.log('\nIf [1/2] failed, the npm registry may have changed advisory shape since this');
-console.log('eval was written. Either update expected/classifications.txt to match the new');
+console.log('test was written. Either update expected/classifications.txt to match the new');
 console.log('reality, or pin the fixture deps and document the drift.');
 process.exit(1);
