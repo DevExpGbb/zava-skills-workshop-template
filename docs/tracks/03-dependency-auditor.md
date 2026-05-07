@@ -59,65 +59,75 @@ A Skill closes that gap.
 - Emit a markdown report: top 5 critical findings, recommended bumps, and a "manual review" list
 - Refuse to modify package.json itself — the Skill's output is a recommendation, not a code change
 
-Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
-  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
+Draw an ASCII art diagram of the proposed skill architecture and explain the reasons of the design.
 ```
 
 > 💡 **Schema reference (npm 10+).** `npm audit --json` returns `{ auditReportVersion, vulnerabilities, metadata }`. Each entry under `vulnerabilities` exposes `severity`, `range` (vulnerable range), and `fixAvailable` — one of `false`, `true` (boolean: requires `--force`), or `{ name, version, isSemVerMajor }`. Classify on `fixAvailable`, not on legacy `patched_versions`. The boolean-`true` shape is rare on this fixture (today's npm registry returns objects for all three baked-in deps), but real audits across many packages will produce it — handle it.
 
-### Reference architecture — what good looks like
+### What Genesis returned for this brief
 
-Below is the canonical shape Genesis should emit for `dependency-auditor`. Yours may use different node names; what must hold is the **6-band shape** plus the **classifier rubric** as a first-class node — that rubric is the contract the eval validates against.
+Rendered in Mermaid for GitHub readability — Genesis emits ASCII into your chat. Same components, same edges. Yours may differ in naming; what must hold is the **classifier as a first-class node** with all four buckets, and the **hard safety boundary** against package.json/lockfile mutations.
 
+```mermaid
+flowchart TD
+  ANCHOR[B8 ATTENTION ANCHOR<br/>npm audit exit-code lies<br/>classify on fixAvailable npm 10+]
+  RUNNER[S1 RUNNER<br/>npm audit --json<br/>ignore exit code]
+  PKG[(security-fixtures<br/>package.json + lock)]
+  BRIDGE[S7 DETERMINISTIC TOOL BRIDGE<br/>npm audit --json call]
+  PARSE[S2 JSON PARSER + VALIDATOR<br/>read metadata.vulnerabilities.total<br/>reject non-npm10+ schema]
+  CLS{C1 CLASSIFIER<br/>4 buckets via fixAvailable}
+  SAFE[SAFE-BUMP<br/>fixAvailable.object<br/>not isSemVerMajor]
+  MAJOR[MAJOR-BUMP<br/>fixAvailable.object<br/>isSemVerMajor true]
+  FORCE[FIX-VIA-FORCE<br/>fixAvailable === true]
+  NOFIX[NO-FIX<br/>fixAvailable === false]
+  AUDITMD[E1 AUDIT.md EMITTER<br/>severity counters<br/>findings table<br/>manual list]
+  SUMMARY[E2 SUMMARY EMITTER<br/>stdout one-liner]
+  OUT_MD[(AUDIT.md mutated)]
+  OUT_STDOUT[(stdout)]
+  DENY[B5 SAFETY BOUNDARY HARD<br/>DENY npm install<br/>DENY npm audit fix<br/>DENY package.json + lock writes]
+
+  ANCHOR --> RUNNER
+  RUNNER --> BRIDGE
+  PKG ==> BRIDGE
+  BRIDGE --> PARSE
+  PARSE --> CLS
+  CLS --> SAFE
+  CLS --> MAJOR
+  CLS --> FORCE
+  CLS --> NOFIX
+  SAFE --> AUDITMD
+  MAJOR --> AUDITMD
+  FORCE --> AUDITMD
+  NOFIX --> AUDITMD
+  SAFE --> SUMMARY
+  MAJOR --> SUMMARY
+  FORCE --> SUMMARY
+  NOFIX --> SUMMARY
+  AUDITMD ==> OUT_MD
+  SUMMARY ==> OUT_STDOUT
+  DENY -. "wraps every step" .-> BRIDGE
+  DENY -. "wraps every step" .-> AUDITMD
+
+  classDef external fill:#eee,stroke:#666,stroke-dasharray: 4 3;
+  classDef internal fill:#fff,stroke:#000;
+  classDef boundary fill:#fdd,stroke:#a44,stroke-width:2px;
+  classDef anchor fill:#ffd,stroke:#aa0;
+  classDef bucket fill:#dfd,stroke:#272;
+  class PKG,OUT_MD,OUT_STDOUT external;
+  class RUNNER,BRIDGE,PARSE,CLS,AUDITMD,SUMMARY internal;
+  class DENY boundary;
+  class ANCHOR anchor;
+  class SAFE,MAJOR,FORCE,NOFIX bucket;
 ```
-┌─ Goal ─────────────────────────────────────────────────────┐
-│  Triage npm audit findings into a remediation plan        │
-│  (recommend, don't apply)                                 │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Trigger ──────────────────────────────────────────────────┐
-│  "Use the dependency-auditor skill on                      │
-│   zava-storefront/security-fixtures/."                     │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Inputs ───────────────────────────────────────────────────┐
-│  • zava-storefront/security-fixtures/package.json          │
-│  • npm audit --json output (deterministic tool)            │
-│  • classifier-rubric (4 branches, see Workflow)            │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Workflow (classifier pipeline) ───────────────────────────┐
-│  1. npm install --prefix <fixtures> --no-audit --no-fund   │
-│  2. npm audit --json --prefix <fixtures> || true           │
-│  3. parse → for each entry under .vulnerabilities:         │
-│       fixAvailable === false        → MANUAL-REVIEW        │
-│       fixAvailable === true (bool)  → FIX-VIA-FORCE        │
-│       fixAvailable.isSemVerMajor    → BREAKING-BUMP        │
-│       else                          → SAFE-BUMP            │
-│  4. rank by severity (critical > high > moderate > low)    │
-│  5. emit markdown report (strict schema)                   │
-│  6. NEVER edit package.json (allowed-tools forbids Edit)   │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Verification ─────────────────────────────────────────────┐
-│  • Live: lodash, axios, minimist all classified            │
-│  • Eval: 4-branch fixture passes (apm run eval-track-3)    │
-│  • allowed-tools enforcement: zero file mutations          │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Output artifact ──────────────────────────────────────────┐
-│  • Markdown report (PR comment-shaped):                    │
-│    - severity counters (🔴🟠🟡🟢)                          │
-│    - top findings table (severity / pkg / current /        │
-│      patched / bump-kind)                                  │
-│    - manual-review list with rationale                     │
-└────────────────────────────────────────────────────────────┘
-```
+
+**Why this shape (rationale Genesis explained):**
+
+- **A2 PIPELINE-with-classifier** (not A1 PANEL) — there are no independent lenses to synthesize. One deterministic input, one deterministic schema, four mutually exclusive buckets. Adding agents would invent disagreement that the data doesn't have.
+- **B8 ATTENTION ANCHOR at the top** — `npm audit` exits non-zero on findings. The skill must *expect* non-zero and classify by JSON, not by exit code. The anchor pins this rule above every step so context drift can't dilute it.
+- **C1 CLASSIFIER as first-class node** — the four buckets are the contract the eval validates against. Inventing a 5th bucket inline means the rubric is wrong, not the data.
+- **B5 SAFETY BOUNDARY (hard)** — DENY-list wraps every consequential step: no `npm install`, no `npm audit fix`, no `--force`, no writes to `package.json`/lockfile/`node_modules`. Recommendation, not remediation. The boundary is rendered as a node, not buried in prose.
+- **S7 DETERMINISTIC TOOL BRIDGE** — `npm audit --json` is the only authority. The LLM never re-derives severity or `fixAvailable` from recall.
+- **Failure modes guarded:** classifying on `severity` instead of `fixAvailable` (anchor blocks); inferring a 5th bucket (classifier is closed); attempting `npm audit fix` because the LLM "thinks it's safe" (deny list rejects).
 
 ---
 

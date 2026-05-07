@@ -76,64 +76,72 @@ Reference: <upstream guide URL with anchor>.
 Produce: a single BC-NNN entry following the existing express-4-to-5 catalog
 schema, plus the one-line fixture I should grep against, plus the regex.
 
-Draw an ASCII art diagram of what the *eventual* full fork would look like.
-Use this shape:
-  User goal → Skill trigger → Inputs → Workflow → Verification → Output artifact
+Draw an ASCII art diagram of the proposed skill architecture and explain the reasons of the design.
 ```
 
-### Reference architecture — what good looks like (the *fork* shape)
+### What Genesis returned for this brief (the *fork* shape)
 
-Below is the canonical shape Genesis should emit when you scope your eventual full fork (using Next 14→15 as the example pair). Yours will use a different X→Y, but the **6-band shape** is what generalizes — and the four-artifact triangle (Catalog / Rubric / Fixture / Eval) inside the Workflow band is what makes a modernizer *defensible* rather than vibes-based.
+Rendered in Mermaid for GitHub readability — Genesis emits ASCII into your chat. Same components, same edges. Yours will use a different X→Y; what must hold is the **closed loop across catalog / rubric / orchestrator / eval+fixture** — that's what makes a modernizer defensible rather than vibes-based. Remove any one artifact and the others lose their grip on reality.
 
+```mermaid
+flowchart TD
+  CAT[(ASSET CATALOG<br/>next-14-to-15-breaking-changes.md<br/>BC-001 fetch cache flip *<br/>BC-002 ...<br/>BC-NNN ...)]
+  RUB[(ASSET RUBRIC<br/>SAFE / AUTOFIX / MANUAL<br/>+ tie-breaker)]
+  FIX[(ASSET FIXTURE<br/>mini Next 14 app<br/>one hit per BC)]
+
+  ORCH[SKILL ORCHESTRATOR A2 PIPELINE<br/>discover - grep BC.regex - classify - dispatch]
+
+  AUTO[AUTOFIX bin<br/>edit in place]
+  MAN[MANUAL bin<br/>insert TODO + plan row]
+  SAFE[SAFE bin<br/>checklist row only]
+
+  SRC[(source files mutated)]
+  PLAN[(MIGRATION-PLAN.md<br/>OUTPUT B4 PLAN MEMENTO)]
+
+  EVAL[EVAL RUNNER<br/>for BC in CATALOG: hits = grep regex on FIXTURE<br/>assert hits gte expected else FAIL CI]
+
+  TODAY[TODAY'S DELIVERABLE<br/>one BC-NNN row<br/>+ one fixture line]
+
+  CAT -- "regex + class" --> ORCH
+  RUB -- "classify rule" --> ORCH
+  FIX -- "scan target" --> ORCH
+  ORCH --> AUTO
+  ORCH --> MAN
+  ORCH --> SAFE
+  AUTO --> SRC
+  MAN --> PLAN
+  SAFE --> PLAN
+
+  CAT == "regex source" ==> EVAL
+  FIX == "regression target" ==> EVAL
+  EVAL -. "FAIL CI on regression" .-> CAT
+
+  TODAY -. "plugs into" .-> CAT
+  TODAY -. "plugs into" .-> FIX
+
+  classDef artifact fill:#eef,stroke:#447;
+  classDef orchestrator fill:#ffd,stroke:#a80;
+  classDef evalcls fill:#fdd,stroke:#a44;
+  classDef output fill:#dfd,stroke:#272;
+  classDef todays fill:#fd8,stroke:#a40,stroke-width:3px;
+  class CAT,RUB,FIX artifact;
+  class ORCH orchestrator;
+  class EVAL evalcls;
+  class PLAN,SRC output;
+  class TODAY todays;
 ```
-┌─ Goal ─────────────────────────────────────────────────────┐
-│  Migrate a Next 14 codebase to Next 15 with a defensible  │
-│  plan: cited breaking changes, classified, regression-     │
-│  guarded                                                   │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Trigger ──────────────────────────────────────────────────┐
-│  "Use the nextjs-modernizer skill on <repo-path>."         │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Inputs ───────────────────────────────────────────────────┐
-│  • Target codebase (read-only, Grep + Edit for autofixes)  │
-│  • next-14-to-15-breaking-changes.md (CATALOG, cited)      │
-│  • classifier-rubric.md (SAFE / AUTOFIX / MANUAL)          │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Workflow (PIPELINE — the four-artifact loop) ─────────────┐
-│                                                            │
-│   ┌─ Catalog ─┐    ┌─ Rubric ─┐    ┌─ Skill ──┐    ┌─ Eval ─┐
-│   │ BC-001..N │ →  │ classify │ →  │ orchestr.│ →  │ regex  │
-│   │ cited     │    │ findings │    │ migration│    │ regress│
-│   │ regexes   │    │ (3 bins) │    │ plan     │    │ guard  │
-│   └───────────┘    └──────────┘    └──────────┘    └────────┘
-│                                                            │
-│  1. grep target with each BC catalog entry's regex         │
-│  2. classify hits via rubric (SAFE/AUTOFIX/MANUAL)         │
-│  3. autofix the AUTOFIX bin (deterministic substitution)   │
-│  4. write MIGRATION-PLAN.md with the MANUAL bin            │
-│  5. NEVER hallucinate a breaking change — catalog only     │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Verification ─────────────────────────────────────────────┐
-│  • node evals/run.js (regex regression: ≥N expected hits)  │
-│  • Fixture mini-app exercises every catalog entry          │
-│  • Existing tests still pass after AUTOFIX phase           │
-└────────────────────────────────────────────────────────────┘
-              │
-              ▼
-┌─ Output artifact ──────────────────────────────────────────┐
-│  • MIGRATION-PLAN.md (3 phases: autofixed / manual /       │
-│    validation checklist)                                   │
-│  • PR with autofixed phase committed                       │
-└────────────────────────────────────────────────────────────┘
-```
+
+**Why this shape (rationale Genesis explained):**
+
+- **A2 PIPELINE wrapped by a regression-eval gate** — *not* STAFFED PLAN; there are no per-task agents. Single-pass, deterministic discover→classify→dispatch. Inherited verbatim from express-4-to-5; only catalog + fixture grow per fork.
+- **B4 PLAN MEMENTO** — `MIGRATION-PLAN.md` is the persisted artifact. The skill writes the plan; the team executes it. Plan outlives the chat.
+- **B8 ATTENTION ANCHOR** — every finding must cite a `BC-NNN`. The catalog row is the *only* license to emit a finding. No row → no finding. Hallucinated migrations cannot enter the pipeline.
+- **S7 DETERMINISTIC TOOL BRIDGE** — grep and the eval runner are the deterministic substrate. The LLM never adjudicates a regex match.
+- **EXPLICIT HIERARCHY (PROSE-E)** — the 3-bin classifier is *closed*. Inventing a 4th class means the catalog is wrong, not the rubric.
+- **The eval closes the loop** — adding a catalog row without a fixture line breaks CI. That's the regression guard that keeps the fork honest as it grows.
+- **Today's deliverable** is the orange node: one BC-NNN row + one fixture line. The orchestrator, rubric, and eval runner are reused — you're feeding them, not rebuilding them.
+
+**Fork failure modes Genesis named:** (1) catalog rows without source-anchor URLs → hallucinated migrations; (2) new BC without matching fixture line → regex rots silently; (3) eval asserting `hits >= 1` instead of `== expected` → false positives slip; (4) classifier drift (a 4th bin invented inline); (5) AUTOFIX used where rewrite needs cross-file awareness — bias-to-safety lives in the rubric tie-breaker.
 
 > 🛠️ **Today's deliverable is one BC-NNN entry**, not the full pipeline. The diagram above is the *target shape* — it tells you what slot your one entry plugs into and why the catalog citation discipline matters (every node downstream of "Catalog" is a function of catalog quality).
 
