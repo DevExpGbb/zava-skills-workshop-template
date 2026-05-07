@@ -58,6 +58,10 @@ Draw an ASCII art diagram of the proposed skill architecture. Use this shape:
 
 Genesis returns a design (with the ASCII diagram). **Read it before coding.** That doc *is* your spec.
 
+> 💾 **Persist Genesis's output.** Don't lose it to chat scrollback. Two options:
+> - **Quick:** paste the design summary + ASCII diagram into a fenced block at the top of `.apm/skills/my-skill/SKILL.md` (above the frontmatter? no — just below the H1, before "When to use"). Future you reads it before re-editing.
+> - **Clean:** save it to `.apm/skills/my-skill/DESIGN.md` and add `# Design` link from the skill's frontmatter `description`. Survives a SKILL.md rewrite.
+
 ---
 
 ## 🛠️ Build (25 min)
@@ -131,12 +135,20 @@ Workshop scaffold (do these in order — silent failures otherwise):
 #     stanza never fires and you'll think your Skill is broken.
 gh label create run-test-improver --color B0E0FF --description "Run the test-improver skill on this PR"
 
-# 2 · Edit .github/workflows/my-workflow.md so the on: stanza watches that label:
-#     on:
-#       pull_request:
-#         types: [labeled]
-#     # plus an `if: github.event.label.name == 'run-test-improver'` guard
-#     # in the job.
+# 2 · Edit .github/workflows/my-workflow.md. Concrete diff against the scaffold:
+#
+#       on:
+#         pull_request:
+#     -     types: [labeled]
+#     +     types: [labeled]
+#     +     paths: ['zava-storefront/lib/**']
+#         workflow_dispatch:
+#         roles: [admin, maintainer, write]
+#
+#       if: |
+#     -   (github.event_name == 'pull_request' && github.event.label.name == 'run-my-skill')
+#     +   (github.event_name == 'pull_request' && github.event.label.name == 'run-test-improver')
+#         || github.event_name == 'workflow_dispatch'
 
 # 3 · Compile (gh aw produces a real .lock.yml from the .md you edited):
 gh aw compile      # → .github/workflows/my-workflow.lock.yml

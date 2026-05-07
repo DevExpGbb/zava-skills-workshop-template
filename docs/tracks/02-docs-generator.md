@@ -117,6 +117,12 @@ Steps 1 and 4 should print **nothing** (or only blank lines). If step 1 lists `t
 
 > 📌 **This is the discipline differentiator.** Tracks 1 and 3 have natural oracles (`npm test`, `npm audit --json`). Track 2's oracle is *you, plus three commands*. Without it, "never invent behavior" is a vibe — a customer auditor will not accept that.
 
+> 🧭 **When do I need an oracle vs. an eval vs. neither?**
+> - **Neither** — when the Skill's output is *prose for humans* and "good enough" is judged by the reader (e.g. release-notes-summarizer). Just ship it; let PR review be the loop.
+> - **Oracle** — when the Skill's output is *deterministic and check-with-shell-commands* (file scope, type compile, test pass, comment-only diff). Cheap, repeatable, runs every invocation. Use this when "did the Skill stay in its lane?" must be answered in seconds.
+> - **Eval** — when the Skill's output is *judgement under variance* (classification, ranking, structured plan). You need a fixture set with expected outcomes (Track 3's `dependency-auditor` and Track 4's `framework-modernizer` ship one). Run on every change to the Skill's prompt or rubric, not every invocation.
+> Most banking-grade Skills end up needing both: oracle to gate the run, eval to gate the prompt.
+
 ---
 
 ## 📦 Package + publish (15 min)

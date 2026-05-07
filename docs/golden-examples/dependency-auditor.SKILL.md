@@ -52,7 +52,7 @@ Do not invoke for: source code changes, lockfile-only changes, or repos without 
 | severity | package | vulnerable range | fix version | bump-kind |
 |---|---|---|---|---|
 | critical | minimist | <=0.2.3 | 1.2.8  | breaking-bump |
-| critical | lodash   | <=4.17.20 | 4.17.21 | safe-bump |
+| critical | lodash   | <=4.17.20 | 4.18.1 | safe-bump |
 | high     | axios    | <=0.21.0 | 0.21.4 | safe-bump |
 
 ## Manual review
