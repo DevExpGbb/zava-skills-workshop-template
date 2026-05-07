@@ -11,11 +11,24 @@ keywords:
   - apm
   - agent-skill
 
-# Pin the workshop kits. These ship the personas, instructions, and the
-# Genesis-style design surface you'll lean on while authoring your skill.
-# Bump to v5.0.2 once it ships (panel skills vendored).
+# Explicit consent: ship everything under .apm/ when packing.
+# (See https://microsoft.github.io/apm/reference/manifest-schema/#39-includes)
+includes: auto
+
+# Runtime dependencies of YOUR skill (what consumers of your packed bundle
+# would need). Empty by default — your skill is self-contained.
 dependencies:
+  apm: []
+  mcp: []
+
+# Author-time tooling. These ship the personas, instructions, and the
+# Genesis-style design surface you lean on while authoring your skill.
+# `apm pack` excludes devDependencies from the bundle, so consumers who
+# install your skill don't pull these in.
+# (See https://microsoft.github.io/apm/guides/dev-only-primitives/)
+devDependencies:
   apm:
+    # Workshop kits — personas, prose-style rules, review panels.
     - DevExpGbb/zava-agent-config/plugins/secure-baseline#v5.0.1
     - DevExpGbb/zava-agent-config/plugins/code-kit#v5.0.1
     - DevExpGbb/zava-agent-config/plugins/ideate-kit#v5.0.1
@@ -25,7 +38,6 @@ dependencies:
     # the workshop installs cleanly under the org allowlist policy.
     # Pinned to v0.1.0 so every trainee gets identical /genesis behavior.
     - DevExpGbb/genesis#v0.1.0
-  mcp: []
 
 scripts:
   # Pack this skill for distribution. CI runs the same on tag push.
