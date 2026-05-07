@@ -151,7 +151,7 @@ gh label create run-test-improver --color B0E0FF --description "Run the test-imp
 #         || github.event_name == 'workflow_dispatch'
 
 # 3 · Compile (gh aw produces a real .lock.yml from the .md you edited):
-gh aw compile      # → .github/workflows/my-workflow.lock.yml
+gh aw compile      # → .github/workflows/my-workflow.lock.yml  (see https://github.github.com/gh-aw/reference/faq/#what-is-a-workflow-lock-file for why both files exist)
 git add .github/workflows/ && git commit -m "ci: compile test-improver workflow"
 git push
 ```
