@@ -122,12 +122,12 @@ flowchart TD
 
 **Why this shape (rationale Genesis explained):**
 
-- **A2 PIPELINE-with-classifier** (not A1 PANEL) — there are no independent lenses to synthesize. One deterministic input, one deterministic schema, four mutually exclusive buckets. Adding agents would invent disagreement that the data doesn't have.
-- **B8 ATTENTION ANCHOR at the top** — `npm audit` exits non-zero on findings. The skill must *expect* non-zero and classify by JSON, not by exit code. The anchor pins this rule above every step so context drift can't dilute it.
-- **C1 CLASSIFIER as first-class node** — the four buckets are the contract the rubric regression test validates against. Inventing a 5th bucket inline means the rubric is wrong, not the data.
-- **B5 SAFETY BOUNDARY (hard)** — DENY-list wraps every consequential step: no `npm install`, no `npm audit fix`, no `--force`, no writes to `package.json`/lockfile/`node_modules`. Recommendation, not remediation. The boundary is rendered as a node, not buried in prose.
-- **S7 DETERMINISTIC TOOL BRIDGE** — `npm audit --json` is the only authority. The LLM never re-derives severity or `fixAvailable` from recall.
-- **Failure modes guarded:** classifying on `severity` instead of `fixAvailable` (anchor blocks); inferring a 5th bucket (classifier is closed); attempting `npm audit fix` because the LLM "thinks it's safe" (deny list rejects).
+- **A pipeline with a closed classifier — not a panel of agents.** There are no independent lenses to synthesize. One deterministic input, one deterministic schema, four mutually exclusive buckets. Adding agents would invent disagreement the data doesn't have.
+- **One anchor pinned at the top: `npm audit` exit code lies.** The Skill must *expect* non-zero (findings are always present) and classify by JSON, not by exit code. The anchor lives above every step so context drift can't dilute it. (Genesis: *ATTENTION ANCHOR*.)
+- **The classifier is a first-class node with all four buckets named.** SAFE-bump, breaking-bump, fix-via-force, manual-review — that closed set is the contract the rubric regression test validates. Inventing a fifth bucket inline means the rubric is wrong, not the data.
+- **A hard safety boundary wraps every consequential step.** DENY-list: no `npm install`, no `npm audit fix`, no `--force`, no writes to `package.json`/lockfile/`node_modules`. Recommendation, not remediation. The boundary is rendered as a node, not buried in prose. (Genesis: PROSE *Safety Boundaries*, hard variant.)
+- **A deterministic tool is the only authority on the data.** `npm audit --json` is the source of truth — the LLM never re-derives severity or `fixAvailable` from recall. (Genesis: *DETERMINISTIC TOOL BRIDGE*.)
+- **Failure modes guarded:** classifying on `severity` instead of `fixAvailable` (anchor blocks); inferring a fifth bucket (classifier is closed); attempting `npm audit fix` because the LLM "thinks it's safe" (deny list rejects).
 
 ---
 

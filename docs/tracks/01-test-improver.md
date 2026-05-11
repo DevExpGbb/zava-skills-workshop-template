@@ -100,11 +100,11 @@ flowchart TD
 
 **Why this shape (rationale Genesis explained):**
 
-- **A9 SUPERVISED EXECUTION** with a bounded retry arm — chosen over A8 ALIGNMENT LOOP because convergence ("all branches in target file covered") is a **deterministic tool fact**, not goal alignment. The oracle is `npm test`, not the LLM.
-- **B4 PLAN MEMENTO** — target file, iteration counter, and added-tests ledger persist across rounds, reloaded each iteration. Without it, the loop drifts on its own short memory.
-- **B8 ATTENTION ANCHOR** — scope is locked to one `lib/` file. Long-context drift cannot widen the blast radius mid-loop.
-- **S7 DETERMINISTIC TOOL BRIDGE** wraps every consequential step — coverage probe, file write, `npm test`. The LLM never re-derives coverage from recall.
-- **Hard 5-iteration cap** — guards against UNBOUNDED LOOP. Cap-hit is treated as a real outcome (summary still emits), not silent failure.
+- **A supervised loop with a bounded retry arm.** Convergence ("all branches in target file covered") is a deterministic tool fact, not a goal-alignment judgment — so the oracle is `npm test`, not the LLM. (Genesis names this *SUPERVISED EXECUTION* — chosen over a self-judging *ALIGNMENT LOOP* for that reason.)
+- **A persisted plan that reloads each iteration.** Target file, iteration counter, and added-tests ledger survive across rounds — without that, the loop drifts on its own short memory. (Genesis: *PLAN MEMENTO*.)
+- **Scope locked to one file, top of the loop.** Long-context drift cannot widen the blast radius mid-run. (Genesis: *ATTENTION ANCHOR*.)
+- **A deterministic tool wraps every consequential step** — coverage probe, file write, `npm test`. The LLM never re-derives coverage from recall. (Genesis: *DETERMINISTIC TOOL BRIDGE*.)
+- **Hard 5-iteration cap.** Guards against an unbounded loop. Cap-hit is treated as a real outcome (summary still emits), not silent failure.
 - **Out of scope (deliberate):** editing `lib/` source, multi-file targets, fixing pre-existing failing prod tests.
 
 > 💾 **Persist Genesis's output.** Don't lose it to chat scrollback. Save it (the ASCII + rationale) to `.apm/skills/test-improver/DESIGN.md` (after step 2 below creates the folder) so future redesigns start from a real artifact.
