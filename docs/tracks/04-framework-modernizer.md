@@ -85,20 +85,13 @@ Pick one migration from the table below and run Genesis against it. **Next 14 �
 Now run Genesis cold. Paste this prompt into your harness, swapping in the migration name and the URL from the row you picked:
 
 ```
-/genesis I'm designing a framework-modernizer skill for <X → Y>.
-
-Reference: <upstream migration guide URL>.
-
-Run the full 8-step process. I want to see the component diagram, the
-sequence/thread diagram, the SoC pass against the existing modernizer pattern,
-the persisted handoff packet, and the proposed evals plan.
-
-Also produce: one example catalog entry for the most prominent breaking
-change in the migration — the regex you'd grep for, and a one-line fixture
-snippet that should match.
+/genesis Design a framework-modernizer skill for <X → Y> based on
+this reference guide: <upstream migration guide URL>. Then show me
+the proposed agentic system architecture as an ASCII diagram and
+explain why you designed it that way.
 ```
 
-Let it run end-to-end. You'll get a fresh handoff packet that **may or may not** look exactly like our Express 4→5 design — that's the point of §4.
+That's it. Genesis owns the rest — that's the whole point of the skill. Let it run end-to-end. You'll get back a design proposal that **may or may not** look exactly like our Express 4→5 reference — that's what §4 is for.
 
 > 🎒 **Brought your own?** If you came with a migration on your team's roadmap (Mode B) or with your own source code you want Genesis to scope against (Mode C), point Genesis at it instead. The 8-step process is the same; the brief just gets longer ("the target codebase is at `<path>`; scope to its actual surface, not a generic case"). Variants are welcome — they make §4's diff more interesting.
 
