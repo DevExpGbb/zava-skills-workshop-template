@@ -105,11 +105,11 @@ flowchart TD
 
 **Why this shape (rationale Genesis explained):**
 
-- **A2 PIPELINE wrapped by A9 SUPERVISED EXECUTION** — linear flow, but every write goes through one supervised gate. Flow is deterministic; only JSDoc body + usage example are LLM-judged.
-- **Safety Boundary Gate as a first-class node** (PROSE-S) — not a comment in the prose, an actual chokepoint. It enforces three rules at one place: path allow-list (no out-of-scope writes), comment-only diff in TS (function bodies untouched), append-or-create on README.
-- **B8 ATTENTION ANCHOR + allow-list** — scope is locked at the top of the pipeline. Long-context drift cannot widen it mid-run.
-- **Declaration filter is deterministic** (S7) — KEEP `exported function`, DROP types / interfaces / classes / zod schemas. The LLM never decides what's in scope — the AST does.
-- **S7 DETERMINISTIC TOOL BRIDGE** wraps every file mutation. The LLM proposes JSDoc text; the writer enforces position (above-declaration only).
+- **A linear pipeline with one supervised gate before every write.** Flow is deterministic; only the JSDoc body and the usage example are LLM-judged. (Genesis names this combination *PIPELINE* + *SUPERVISED EXECUTION*.)
+- **The Safety Boundary Gate is a first-class node, not a comment in the prose.** It enforces three rules at one chokepoint: path allow-list (no out-of-scope writes), comment-only diff in TS (function bodies untouched), append-or-create on README. (PROSE *Safety Boundaries* rendered as a node.)
+- **Scope is locked at the top of the pipeline by an explicit allow-list.** Long-context drift cannot widen it mid-run. (Genesis: *ATTENTION ANCHOR*.)
+- **The declaration filter is deterministic, not LLM-judged.** KEEP `exported function`; DROP types / interfaces / classes / zod schemas. The AST decides what's in scope, not the model.
+- **A deterministic tool wraps every file mutation.** The LLM proposes JSDoc text; the writer enforces position (above-declaration only). (Genesis: *DETERMINISTIC TOOL BRIDGE*.)
 - **Failure modes guarded:** hallucinated `@param`/`@throws` (filter forbids inferring beyond source), wrong-file edits (allow-list), body mutation (gate rejects non-comment lines), unbounded README rewrite (append-only).
 
 ---
