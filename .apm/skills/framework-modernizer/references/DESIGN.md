@@ -98,7 +98,7 @@ No external modules required → no module-system adapter needed.
 
 ## Step 5 — PROSE compliance check
 
-PROSE = **P**rogressive Disclosure / **R**educed Scope / **O**rchestrated Composition / **S**afety Boundaries / **E**xplicit Hierarchy ([handbook ch.12](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html#the-constraint-model)). One row per constraint:
+PROSE = **P**rogressive Disclosure / **R**educed Scope / **O**rchestrated Composition / **S**afety Boundaries / **E**xplicit Hierarchy ([handbook ch.13](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch13-the-prose-specification.html#the-constraint-model)). One row per constraint:
 
 | PROSE constraint | How this skill complies |
 |---|---|
