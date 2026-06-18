@@ -8,8 +8,8 @@
 
 ## 📚 Theory anchor
 
-- **Live:** [Architectural Patterns Rosetta Stone — *Triage / classifier patterns*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html)
-- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+- **Live:** [Architectural Patterns Rosetta Stone — *Triage / classifier patterns*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch19-architectural-patterns-rosetta-stone.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch13-the-prose-specification.html)
 
 **Local fallback (3 sentences):** A dependency auditor is a *classifier with a fixed schema*. *Orchestrated Composition* applies — your Skill calls a deterministic tool (`npm audit --json`), then the LLM does only what humans hate doing: reading 50 advisories and producing a triaged plan. *Safety Boundaries* matter twice: never modify `package.json` directly (recommend, don't apply); never invent CVE IDs.
 
@@ -324,7 +324,7 @@ Open a PR touching any `package.json`, label it `run-dependency-auditor`, and wa
 
 ## 🌍 Platform payoff (your Skill in someone else's repo)
 
-After §6 of the README, a partner team can pin your auditor in *their* repo:
+After §2 of the README, a partner team can pin your auditor in *their* repo:
 
 ```yaml
 # their apm.yml

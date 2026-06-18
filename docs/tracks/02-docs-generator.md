@@ -9,7 +9,7 @@
 ## 📚 Theory anchor
 
 - **Live:** [The Reference Architecture — *Documentation as a closed loop*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html)
-- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch13-the-prose-specification.html)
 
 **Local fallback (3 sentences):** A docs-generator Skill is a discipline test for the PROSE constraint *Safety Boundaries* — the agent **must not** invent behavior that isn't in the source, even when the source is sparse. *Progressive Disclosure* shapes the output: short JSDoc above each export, then a single "Usage" section with one minimal example each. The win: the same Skill produces the same docs whether a junior or a senior triggers it.
 
@@ -296,9 +296,9 @@ Open a PR touching any `zava-storefront/lib/*.ts`, label it `run-docs-generator`
 
 ---
 
-## 🌍 The platform payoff — Section 6 (5 min)
+## 🌍 The platform payoff — Section 2 (5 min)
 
-Now go back to the [README §6](../../README.md#-section-6--the-platform-claim). The same `docs-generator` skill you just shipped, in a partner repo's `apm.yml`:
+Now go back to the [README §2](../../README.md#-section-2--the-payoff--your-skill-my-code). The same `docs-generator` skill you just shipped, in a partner repo's `apm.yml`:
 
 ```yaml
 dependencies:

@@ -8,8 +8,8 @@
 
 ## 📚 Theory anchor
 
-- **Live:** [Architectural Patterns Rosetta Stone — *Verification Loops*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html)
-- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch12-the-prose-specification.html)
+- **Live:** [Architectural Patterns Rosetta Stone — *Verification Loops*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch19-architectural-patterns-rosetta-stone.html)
+- **Live:** [The PROSE Specification](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch13-the-prose-specification.html)
 
 **Local fallback (3 sentences):** A Skill is a *narrowly-scoped procedure* an agent invokes — not a generalist prompt. The PROSE constraint *Reduced Scope* tells us the test-improver should refuse anything other than "fill missing test coverage in this file"; *Safety Boundaries* keep it from editing source under test. The verification loop pattern (write → run → read failure → refine) is what turns "Copilot drafted some tests" into "the test suite actually passes."
 
@@ -276,7 +276,7 @@ Open a PR touching `zava-storefront/lib/cart.ts`, label it `run-test-improver`, 
 
 ## 🌍 Platform payoff (your Skill in someone else's repo)
 
-After §6 of the README, your team-mate can pin your tarball in *their* repo:
+After §2 of the README, your team-mate can pin your tarball in *their* repo:
 
 ```yaml
 # their apm.yml

@@ -1,9 +1,10 @@
 name: my-workshop-skill
 version: 0.1.0
 description: >-
-  Workshop trainee starter — fork this template, build a skill in
-  .apm/skills/my-skill/, run it locally against zava-storefront/, then publish
-  via gh skill + apm pack on tag.
+  Workshop starter — author an AI skill, validate it, and run it unchanged
+  in your agent and in CI. Pick a track in docs/tracks/: Basics (test /
+  docs / dependency skills), Framework Modernizer, or Agentic SDLC (a
+  composed review panel + driver). Fork this template and follow docs/tracks/.
 author: <your name>
 license: UNLICENSED
 keywords:
@@ -13,6 +14,11 @@ keywords:
 
 # Explicit consent: ship everything under .apm/ when packing.
 # (See https://microsoft.github.io/apm/reference/manifest-schema/#39-includes)
+# Harness target for `apm install`. Pinned to copilot so a plain
+# `apm install` deploys deterministically (the workshop uses engine: copilot).
+targets:
+  - copilot
+
 includes: auto
 
 # Runtime dependencies of YOUR skill (what consumers of your packed bundle
@@ -46,16 +52,16 @@ scripts:
   # Validate against the open agent-skills.io spec before publishing.
   validate: gh skill publish --dry-run .apm
 
-  # Track 3 trainees: run the dependency-auditor RUBRIC REGRESSION TEST
-  # against zava-storefront/security-fixtures/. Catches rubric drift when
-  # the npm advisory database evolves OR when classify() is edited
-  # without updating the expected file. NOT a behavior eval — see the
+  # Basics · dependency-auditor regression — run the dependency-auditor RUBRIC REGRESSION
+  # TEST against zava-storefront/security-fixtures/. Catches rubric drift when
+  # the npm advisory database evolves OR when classify() is edited without
+  # updating the expected file. NOT a behavior eval — see the
   # agentskills.io-style behavior evals at evals.json + triggers.json
   # (Layer 1) in that folder. README documents both layers.
   regression-track-3: node docs/golden-examples/dependency-auditor.evals/run.js
 
-  # Track 4 trainees: run the framework-modernizer CATALOG REGRESSION
-  # TEST (regex catalog vs deliberate fixture). Same Layer-2 shape as
-  # regression-track-3. Behavior evals live at evals/evals.json +
-  # evals/triggers.json (Layer 1).
-  regression-track-4: node .agents/skills/framework-modernizer/evals/run.js
+  # Framework Modernizer regression — run the framework-modernizer
+  # CATALOG REGRESSION TEST (regex catalog vs deliberate fixture). Same
+  # Layer-2 shape as regression-track-3. Behavior evals live at
+  # evals/evals.json + evals/triggers.json (Layer 1).
+  regression-track-4: node .apm/skills/framework-modernizer/evals/run.js

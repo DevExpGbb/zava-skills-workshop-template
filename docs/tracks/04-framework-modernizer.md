@@ -1,55 +1,47 @@
-# Track 4 · `framework-modernizer` — fork the pattern to your own migration
+# Track 4 · `framework-modernizer` — ship a real Next 14 → 15 migration
 
-> Tracks 1–3 each shipped one Skill against `zava-storefront/`. **Track 4 teaches you how to fork that pattern** to any framework migration your team actually cares about — Next 14→15, Spring Boot 2→3, .NET 6→8, whatever's on your roadmap. You'll run a design Skill (`genesis`) on a migration brief, diff its output against our worked Express 4→5 reference, then author one new catalog entry against your own pair. You won't finish a full fork in 35 minutes — but you'll leave knowing exactly what to build at home, and *why* this shape generalizes to every framework migration you'll ever ship.
+> **You are not fixing the app by hand. You are authoring one Skill** that scans `zava-storefront/`, classifies real Next.js 14 → 15 upgrade findings, applies the safe mechanical edits, and leaves a `MIGRATION-PLAN.md` for the work that needs human judgment.
 
-⏱️ **~35 min**
-
-> 📦 **About the deliverable.** Tracks 1–3 ship a tagged `v0.1.0` Skill. Track 4 doesn't — the value here is in the design move, not the artifact. The full fork (catalog + rubric + fixture + two test layers) is hours of work you'll do at home with the design Genesis hands you in §3.
+⏱️ **~90 min**
 
 ---
 
 ## 📚 Theory anchor
 
-- **Live:** [Architectural Patterns Rosetta Stone — *Pipeline / Catalog patterns*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html)
+- **Live:** [Architectural Patterns Rosetta Stone — *Pipeline / Catalog patterns*](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch19-architectural-patterns-rosetta-stone.html)
 - **Live:** [The Reference Architecture](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html)
 
-**Local fallback (3 sentences):** Major framework upgrades are 80% mechanical (catalog the breaking changes, find them, autofix the trivial ones) and 20% judgment. LLMs hallucinate "breaking changes" from training data — the fix is not a smarter model but **a source-of-truth catalog with citations + a regression test that proves the regexes still match + behavior evals that prove the skill outperforms `without_skill`**. The Catalog → Rubric → Skill → (regression + behavior evals) shape generalizes: pick *any* X→Y framework pair and the same artifacts ship a defensible modernizer.
+**Local fallback (3 sentences):** A framework modernizer should not ask the model to remember breaking changes. It should load a cited catalog, run deterministic discovery, classify each hit into `SAFE`, `AUTOFIX`, or `MANUAL`, then persist the plan and edits. This is a PIPELINE because the work is single-pass discovery → classification → dispatch, not a debate between independent agents.
 
 ---
 
-## 🔍 Why this track is different
+## 🔍 What you are building
 
-We built [`framework-modernizer`](../../.apm/skills/framework-modernizer/) as a worked example for Express 4→5 — catalog of cited breaking changes, classifier rubric, fixture, regression test, behavior evals. **You'll skim it, run its tests, then design your own.** The skim and the test run are warm-up; the real work starts at §3 when you point Genesis at *your* migration and watch it derive an architecture.
+The repo already contains a worked Express 4 → 5 reference skill at [`.apm/skills/framework-modernizer/`](../../.apm/skills/framework-modernizer/). You will use it as a shape reference, then build a **new `nextjs-modernizer` skill** for the real app in `zava-storefront/`.
 
-Running Genesis is cheap: it's a pure in-agent design session. No compilation, no CI, no PAT. Cold-prompting it on a fork brief and reading the 8-step output it returns is faster than reverse-engineering the shape from someone else's `DESIGN.md` — and it's the loop you'll use long after the workshop on every non-trivial Skill you ship.
+The in-room deliverable is not a single catalog row. It is:
 
-> 📦 **Productization heads-up.** The modernizer pattern you're reading here has graduated to a productized accelerator in [`DevExpGbb/zava-agent-config`](https://github.com/DevExpGbb/zava-agent-config) under `plugins/accelerators/modernize-kit/` (v6.1.0+), shipping with both `framework-modernizer` (Express 4→5, the reference here) and `nextjs-modernizer` (Next 14→15, verified against `zava-storefront/`). Once your fork is solid, that's the home for it — not in a one-off team repo.
+1. a real Next 14 → 15 catalog with about 6–10 cited `BC-NNN` entries,
+2. a skill that scans the actual storefront,
+3. `AUTOFIX` edits applied in place,
+4. `MANUAL` items left with code pointers and rationale, and
+5. a `MIGRATION-PLAN.md` that the team can review.
 
----
-
-## 🧠 1 · Skim the reference design (5 min)
-
-Open [`.apm/skills/framework-modernizer/references/DESIGN.md`](../../.apm/skills/framework-modernizer/references/DESIGN.md). It's the **Genesis 8-step handoff packet** persisted as a doc. Skim — don't deep-read — to set expectations for what shape your own Genesis run will produce:
-
-- **Step 1 — intent.** Single capability, single framework pair. *Not* a "migrate any framework" mega-skill.
-- **Step 2 — components.** Why **PIPELINE** beat PANEL here (no independent lenses; classification is mechanical).
-- **Step 5 — the four artifacts.** Catalog (cited breaking changes) → Rubric (SAFE/AUTOFIX/MANUAL classifier) → Skill (orchestration) → Eval (regex regression test).
-- **Step 7 — the handoff packet.** What every fork of this pattern needs.
-
-Then glance at [`.apm/skills/framework-modernizer/references/express-4-to-5-breaking-changes.md`](../../.apm/skills/framework-modernizer/references/express-4-to-5-breaking-changes.md). **Every entry cites a section anchor on `expressjs.com`.** That's Rule #1: no invented breaking changes.
+Do not hard-code expected storefront paths. The app may have dynamic product pages, category pages, route handlers, server components with `fetch`, or config files — let the skill discover what is really present.
 
 ---
 
-## 🏃 2 · Run the tests (5 min)
+## 🧪 1 · Warm up on the Express reference (10 min)
 
-The skill ships **two test layers** — both scaffolded by Genesis when this skill was designed:
+Open these files:
 
-| Layer | What it tests | Run it |
-|---|---|---|
-| **Catalog regression** ([`evals/run.js`](../../.apm/skills/framework-modernizer/evals/run.js)) | The deterministic substrate — locks the catalog regexes against the fixture so a bad regex edit fails CI. No LLM. | `node .apm/skills/framework-modernizer/evals/run.js` |
-| **Behavior evals** ([`evals/evals.json`](../../.apm/skills/framework-modernizer/evals/evals.json) + [`triggers.json`](../../.apm/skills/framework-modernizer/evals/triggers.json)) | The skill's actual behavior — each case runs twice (with_skill / without_skill) to make the value delta measurable. Per [agentskills.io spec](https://agentskills.io/skill-creation/evaluating-skills). | Manual / harness-driven — see [`evals/README.md`](../../.apm/skills/framework-modernizer/evals/README.md) |
+- [`.apm/skills/framework-modernizer/references/DESIGN.md`](../../.apm/skills/framework-modernizer/references/DESIGN.md)
+- [`.apm/skills/framework-modernizer/references/express-4-to-5-breaking-changes.md`](../../.apm/skills/framework-modernizer/references/express-4-to-5-breaking-changes.md)
+- [`.apm/skills/framework-modernizer/references/classifier-rubric.md`](../../.apm/skills/framework-modernizer/references/classifier-rubric.md)
 
-Run the catalog regression now (fast, hermetic):
+Skim them. Notice the rule that matters: **every breaking-change row cites a source anchor**. No invented breaking changes.
+
+Now run the deterministic catalog regression:
 
 ```bash
 node .apm/skills/framework-modernizer/evals/run.js
@@ -57,153 +49,42 @@ node .apm/skills/framework-modernizer/evals/run.js
 
 You should see:
 
-```
+```text
 ✅ framework-modernizer catalog regression PASSED (8 findings match expected)
 ```
 
-Now invoke the skill on the same fixture from your harness — this is one of the prompts in `evals.json` (case `fm-c1-explicit-migration`):
-
-> "Migrate this Express 4 app to Express 5. Audit for breaking changes, apply safe fixes in place, and write a migration plan I can hand to my team. Fixture: `.apm/skills/framework-modernizer/evals/fixtures/express4-app/`."
-
-You'll get a `MIGRATION-PLAN.md` with three phases: autofixed (already done), manual (with code pointers), validation checklist. Read the plan — note how the SAFE/AUTOFIX/MANUAL classifications come from [`classifier-rubric.md`](../../.apm/skills/framework-modernizer/references/classifier-rubric.md), not the model's intuition.
-
-> 💡 **Why two layers?** The catalog regression test catches "did someone break the regex?" in CI. The behavior evals catch "does the skill *actually help* a real LLM produce a better migration plan than no skill at all?" — and that's the question agentskills.io says you must be able to answer for any skill you ship.
+That test is fast because it has no LLM call. It proves the catalog regexes still find the fixture lines they are supposed to find.
 
 ---
 
-## 🪄 3 · Run Genesis live on your migration (10 min) — the centerpiece
+## 🧠 2 · Design with Genesis (10 min)
 
-Pick one migration from the table below and run Genesis against it. **Next 14 → 15 is the safe default** — it matches the `zava-storefront/` you've been working in and has the most-codified upstream guide. Pick another only if you have a specific interest.
+Invoke Genesis before writing the skill:
 
-| Migration | Upstream guide (paste this URL into the prompt) | Why it's a good fit |
-|---|---|---|
-| **Next.js 14 → 15** *(default)* | <https://nextjs.org/docs/app/guides/upgrading/version-15> | App Router stable surface; codified migration guide; *applies to `zava-storefront/`* — natural take-home |
-| React 17 → 18 | <https://react.dev/blog/2022/03/08/react-18-upgrade-guide> | Strict mode, `createRoot`, automatic batching — high mechanical surface |
-| Spring Boot 2 → 3 | <https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide> | Jakarta EE namespace flip — the canonical "regex-friendly" migration |
-| .NET 6 → 8 | <https://learn.microsoft.com/dotnet/core/compatibility/8.0> | `Program.cs` minimal hosting; explicit changelog per release |
+```text
+/genesis Design a nextjs-modernizer skill for a real Next.js 14 to 15 migration.
+Use this official upgrade guide as the source of truth:
+https://nextjs.org/docs/app/guides/upgrading/version-15
 
-Now run Genesis cold. Paste this prompt into your harness, swapping in the migration name and the URL from the row you picked:
-
-```
-/genesis Design a framework-modernizer skill for <X → Y> based on
-this reference guide: <upstream migration guide URL>. Then show me
-the proposed agentic system architecture as an ASCII diagram and
-explain why you designed it that way.
+The skill must keep the same single-skill PIPELINE shape as the Express reference:
+discover real hits in zava-storefront/ → classify against a closed SAFE/AUTOFIX/MANUAL rubric → dispatch AUTOFIX edits or MANUAL plan rows.
+It must write MIGRATION-PLAN.md and must be testable with a deterministic catalog regression plus behavior evals.
+Draw an ASCII architecture diagram and explain why this is a pipeline, not a panel.
 ```
 
-That's it. Genesis owns the rest — that's the whole point of the skill. Let it run end-to-end. You'll get back a design proposal that **may or may not** look exactly like our Express 4→5 reference — that's what §4 is for.
-
-> 🎒 **Brought your own?** If you came with a migration on your team's roadmap (Mode B) or with your own source code you want Genesis to scope against (Mode C), point Genesis at it instead. The 8-step process is the same; the brief just gets longer ("the target codebase is at `<path>`; scope to its actual surface, not a generic case"). Variants are welcome — they make §4's diff more interesting.
+Read the output before coding. Save the final design to `.apm/skills/nextjs-modernizer/references/DESIGN.md` when you create the skill folder.
 
 ---
 
-## 🔬 4 · Diff Genesis's output against the reference design (3 min)
+## ✍️ 3 · Build the Next 14 → 15 catalog (25 min)
 
-Open Genesis's fresh packet next to [`references/DESIGN.md`](../../.apm/skills/framework-modernizer/references/DESIGN.md). You're looking for two things — what survived the change of framework, and where Genesis legitimately broke from our reference.
+Create a catalog at:
 
-**Five moves should carry across most migrations.** These are the durable shape; the names and node count will differ, the moves shouldn't:
-
-- **A pipeline, not a panel.** Discover → classify → dispatch, in that order, single-pass. There are no independent expert lenses to synthesize, so adding agents would invent disagreement the data doesn't have.
-- **Every finding cites a catalog row.** The catalog is the *only* license to emit a "you have a breaking change here." No row, no finding. This is the single thing that stops hallucinated migrations cold.
-- **Grep does the matching, not the LLM.** The catalog ships regexes; a deterministic tool runs them; the LLM never re-derives a match from recall. (Java/.NET forks may swap grep for a real AST tool — same role, different deterministic substrate.)
-- **The migration plan is a persisted file** the team executes from later — not a transient chat message that scrolls off.
-- **Two test layers, two failure modes caught.** A deterministic catalog regression test (no LLM, locks the regexes against the fixture so a bad regex edit fails CI) plus behavior evals (`with_skill` vs `without_skill`, per [agentskills.io](https://agentskills.io/skill-creation/evaluating-skills), so you can prove the Skill outperforms a baseline LLM with no Skill loaded).
-
-**Where Genesis may legitimately diverge** (variants are not wrong — they reflect your migration's reality):
-
-- **The architectural shape itself may differ.** If your migration has independent lenses — e.g. type-system migration *and* dependency upgrade *and* config flip all needing different expertise — Genesis may propose a panel of specialists instead of a pipeline. That's a signal about your migration's surface area, not a Genesis bug.
-- **Composition decisions** — your fork may externalize the catalog as its own module if you have multiple Java migrations sharing one entry format; ours inlines it.
-- **The classifier rubric tie-breaker** — risk profile differs by ecosystem. Java's namespace flips skew toward AUTOFIX; .NET hosting-model changes skew toward MANUAL.
-- **Tool selection** — JavaScript skills lean on grep; Java/.NET skills may need a real AST tool (`jdt`, Roslyn) because regex on type-system changes is brittle.
-- **Evals shape** — the behavior eval prompts will name your framework's idioms; the catalog regression's expected-findings table will have a different cardinality.
-
-If Genesis returned something *structurally* very different from our reference — for example, no catalog at all, or no regression test layer — that's worth a question to your facilitator. Either your migration genuinely needs a different shape (interesting!) or the brief under-specified something Genesis filled in with a weaker default.
-
-> 📚 **Going deeper.** The "why these patterns" answers — including the formal names Genesis uses for each move (PIPELINE, ATTENTION ANCHOR, DETERMINISTIC TOOL BRIDGE, PLAN MEMENTO) — are in the [Architectural Patterns Rosetta Stone chapter](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch18-architectural-patterns-rosetta-stone.html) and [The Reference Architecture](https://danielmeppiel.github.io/agentic-sdlc-handbook/handbook/ch04-the-reference-architecture.html). Read them after the workshop as you build your full fork — you'll want the vocabulary then.
-
----
-
-## ✍️ 5 · Author one new catalog entry (10 min) — the actual deliverable
-
-You have Genesis's design for your fork. Now ship the smallest concrete piece of it: **one new catalog entry** (one row, in the format you saw in `express-4-to-5-breaking-changes.md`), one fixture line that demonstrates it, and a regex you've verified by hand. That's the workshop-time deliverable — proof you can execute against your own design, not just read someone else's.
-
-Use the example entry Genesis proposed in §3 as your starting point, or pick a different breaking change from your migration guide if Genesis's pick wasn't the most illustrative one for your audience.
-
-### Reference shape — the express-4-to-5 closed loop
-
-This is the closed-loop architecture our reference skill ships. Compare it to Genesis's diagram for your fork: the nodes will rename, some edges may move, but the **closed loop across catalog / rubric / orchestrator / regression test / behavior evals** is the durable shape — remove any one artifact and the others lose their grip on reality. (Rendered in Mermaid; Genesis emits ASCII into your chat.)
-
-```mermaid
-flowchart TD
-  CAT[(ASSET CATALOG<br/>express-4-to-5-breaking-changes.md<br/>BC-001 ...<br/>BC-002 ...<br/>BC-NNN ...)]
-  RUB[(ASSET RUBRIC<br/>SAFE / AUTOFIX / MANUAL<br/>+ tie-breaker)]
-  FIX[(ASSET FIXTURE<br/>mini Express 4 app<br/>one hit per BC)]
-
-  ORCH[SKILL ORCHESTRATOR pipeline<br/>discover - grep regex - classify - dispatch]
-
-  AUTO[AUTOFIX bin<br/>edit in place]
-  MAN[MANUAL bin<br/>insert TODO + plan row]
-  SAFE[SAFE bin<br/>checklist row only]
-
-  SRC[(source files mutated)]
-  PLAN[(MIGRATION-PLAN.md<br/>persisted plan output)]
-
-  REGRESSION[CATALOG REGRESSION TEST<br/>for BC in CATALOG: hits = grep regex on FIXTURE<br/>assert hits == expected else FAIL CI<br/>deterministic, no LLM]
-
-  BEHAVIOR_EVALS[BEHAVIOR EVALS<br/>evals.json: with_skill vs without_skill<br/>triggers.json: dispatch description<br/>per agentskills.io spec]
-
-  TODAY[TODAY'S DELIVERABLE<br/>one BC-NNN row<br/>+ one fixture line]
-
-  CAT -- "regex + class" --> ORCH
-  RUB -- "classify rule" --> ORCH
-  FIX -- "scan target" --> ORCH
-  ORCH --> AUTO
-  ORCH --> MAN
-  ORCH --> SAFE
-  AUTO --> SRC
-  MAN --> PLAN
-  SAFE --> PLAN
-
-  CAT == "regex source" ==> REGRESSION
-  FIX == "regression target" ==> REGRESSION
-  REGRESSION -. "FAIL CI on regex drift" .-> CAT
-
-  ORCH == "the skill under test" ==> BEHAVIOR_EVALS
-  FIX == "shared fixture" ==> BEHAVIOR_EVALS
-  BEHAVIOR_EVALS -. "value delta vs baseline" .-> ORCH
-
-  TODAY -. "plugs into" .-> CAT
-  TODAY -. "plugs into" .-> FIX
-
-  classDef artifact fill:#eef,stroke:#447;
-  classDef orchestrator fill:#ffd,stroke:#a80;
-  classDef regression fill:#fdd,stroke:#a44;
-  classDef behavior fill:#dfd,stroke:#272;
-  classDef output fill:#dfd,stroke:#272;
-  classDef todays fill:#fd8,stroke:#a40,stroke-width:3px;
-  class CAT,RUB,FIX artifact;
-  class ORCH orchestrator;
-  class REGRESSION regression;
-  class BEHAVIOR_EVALS behavior;
-  class PLAN,SRC output;
-  class TODAY todays;
+```text
+.apm/skills/nextjs-modernizer/references/next-14-to-15-breaking-changes.md
 ```
 
-**Why this shape (and what Genesis will recognise in your fork):**
-
-- **A pipeline wrapped by two test layers.** Single-pass discover→classify→dispatch — no per-task agents, nothing to synthesize. If your Genesis run returned a multi-agent shape, that's signal your migration has independent lenses ours doesn't.
-- **The migration plan is a persisted file** (`MIGRATION-PLAN.md`). The Skill writes it; the team executes from it. The plan outlives the chat, which is what makes it auditable.
-- **Every finding cites a catalog row.** The catalog is the *only* license to emit a "you have a breaking change here." No row → no finding. Hallucinated migrations cannot enter the pipeline.
-- **A deterministic tool does the matching, not the LLM.** Grep and the catalog regression test are the truth substrate. The LLM never adjudicates whether a regex matches. (Yours may swap grep for an AST tool — same role, different bridge.)
-- **The classifier is closed.** Three bins: SAFE, AUTOFIX, MANUAL. Inventing a fourth class inline means your catalog is wrong, not your rubric.
-- **Two test layers, two failure modes caught.** Catalog regression catches "did someone break the regex?" — deterministic, CI-friendly. Behavior evals catch "does the Skill actually outperform no-Skill on a real prompt?" — inference-based, per agentskills.io. Skipping either leaves a class of regression undetected.
-- **Today's deliverable** is the orange node: one catalog row + one fixture line. The orchestrator, rubric, and both test layers are reused — you're feeding them, not rebuilding them.
-
-**Fork failure modes Genesis tends to surface:** (1) catalog rows without source-anchor URLs → hallucinated migrations; (2) a new catalog entry without a matching fixture line → the regex rots silently in the regression test; (3) regression assertion `hits >= 1` instead of `== expected` → false positives slip through; (4) classifier drift (a fourth bin invented inline); (5) AUTOFIX used where rewrite needs cross-file awareness — bias-to-safety lives in the rubric tie-breaker; (6) shipping with no behavior evals → no evidence the Skill outperforms a baseline LLM with no Skill loaded → may be cargo-culted prompt scaffolding adding nothing.
-
-> 🛠️ **Today's deliverable is one BC-NNN entry**, not the full pipeline. The diagram above is the *reference shape* — it tells you what slot your one entry plugs into and why the catalog citation discipline matters (every node downstream of "Catalog" is a function of catalog quality).
-
-**Schema for one entry** (mirror exactly what `express-4-to-5-breaking-changes.md` uses):
+Use the official guide as your source: <https://nextjs.org/docs/app/guides/upgrading/version-15>. Build about 6–10 entries. Each entry must include:
 
 ```markdown
 ### BC-NNN — <short title>
@@ -212,37 +93,202 @@ flowchart TD
 - **Source:** <official guide URL with anchor>
 - **Detect:** `<javascript regex>`
 - **Example match:** `<one-line fixture snippet>`
-- **Fix (if AUTOFIX):** `<replacement snippet>`
-- **Notes:** <one-line rationale, no marketing>
+- **Fix (if AUTOFIX):** `<replacement snippet or exact edit rule>`
+- **Notes:** <one-line rationale>
 ```
 
-**Workshop-time check:** create a fixture file with your example match + one decoy line (no match), run the regex with `grep -nE '<your-regex>' fixture.txt`, confirm it matches the line you expect and *not* the decoy. **That's your catalog regression discipline in miniature.** When you've finished the full fork, ask Genesis to scaffold the behavior evals (`evals.json` + `triggers.json`) — that's the second layer the workshop's framework-modernizer ships.
+Start from these real Next 15 changes. Adjust the regexes after scanning `zava-storefront/`; the examples below are starting points, not final truth.
+
+| ID | Breaking change | Class | Source anchor | Detect idea | Fix rule |
+|---|---|---|---|---|---|
+| `BC-001` | `params` in App Router `page`, `layout`, metadata, route handlers, and metadata files are now async. Synchronous destructuring breaks. | `AUTOFIX` for simple async components; `MANUAL` for client components or complex props | `https://nextjs.org/docs/app/guides/upgrading/version-15#async-request-apis-breaking-change` | `function\s+(Page|Layout|generateMetadata)|export\s+default\s+(async\s+)?function` plus `params` | Change props to an async value and `await params` before destructuring. |
+| `BC-002` | `searchParams` in App Router pages are now async. | `AUTOFIX` for simple async pages; `MANUAL` for client components using `use()` | `https://nextjs.org/docs/app/guides/upgrading/version-15#params--searchparams` | `searchParams\s*[:}]` and later property access/destructure | Await `props.searchParams` before reading query fields. |
+| `BC-003` | `cookies()`, `headers()`, and `draftMode()` are now async request APIs. | `AUTOFIX` when the containing function can be async; otherwise `MANUAL` | `https://nextjs.org/docs/app/guides/upgrading/version-15#async-request-apis-breaking-change` | `\b(cookies|headers|draftMode)\(\)` | Insert `await` and make the containing server function async. |
+| `BC-004` | `fetch` is no longer cached by default in Server Components. | `MANUAL` | `https://nextjs.org/docs/app/guides/upgrading/version-15#fetch-requests` | `await\s+fetch\([^,\n\)]*\)` | Decide per call: add `{ cache: 'force-cache' }`, `next: { revalidate }`, or leave uncached. |
+| `BC-005` | `GET` Route Handlers are no longer cached by default. | `MANUAL` | `https://nextjs.org/docs/app/guides/upgrading/version-15#route-handlers` | `export\s+async\s+function\s+GET\s*\(` | Decide whether to add `export const dynamic = 'force-static'`. |
+| `BC-006` | `experimental-edge` runtime is now invalid; use `edge`. | `AUTOFIX` | `https://nextjs.org/docs/app/guides/upgrading/version-15#runtime-configuration-breaking-change` | `runtime\s*=\s*['"]experimental-edge['"]` | Replace with `runtime = 'edge'`. |
+| `BC-007` | `@next/font/*` was removed; use built-in `next/font/*`. | `AUTOFIX` | `https://nextjs.org/docs/app/guides/upgrading/version-15#nextfont` | `from\s+['"]@next/font/` | Replace `@next/font/` with `next/font/`. |
+| `BC-008` | React and React DOM must move to 19; Server Actions should be reviewed for stricter serialization at the boundary. | `MANUAL` | `https://nextjs.org/docs/app/guides/upgrading/version-15#react-19` | `"react"\s*:\s*"\^?18|"react-dom"\s*:\s*"\^?18|useFormState|server action` | Update dependencies and review Server Actions so values like `Date`, `Map`, and class instances are converted to plain serializable data. |
+| `BC-009` | `experimental.bundlePagesExternals` is now `bundlePagesRouterDependencies`. | `AUTOFIX` | `https://nextjs.org/docs/app/guides/upgrading/version-15#bundlepagesrouterdependencies` | `bundlePagesExternals` | Move to top-level `bundlePagesRouterDependencies`. |
+| `BC-010` | `experimental.serverComponentsExternalPackages` is now `serverExternalPackages`. | `AUTOFIX` | `https://nextjs.org/docs/app/guides/upgrading/version-15#serverexternalpackages` | `serverComponentsExternalPackages` | Move to top-level `serverExternalPackages`. |
+
+Pick the rows that fit the storefront. If a row does not apply, keep it in the catalog only if the official guide makes it relevant to this app family and your fixture covers it.
 
 ---
 
-## 📦 Take-home: the full fork
+## 🔁 Reference shape — closed loop
 
-You won't finish the fork in this session. The path home:
+Keep this shape. Rename nodes for Next.js, but do not turn it into a panel.
 
-1. **Build the catalog.** From the official upstream migration guide, extract every breaking change as `BC-NNN` with: ID, classification, source citation, detect regex, fix snippet. Cite anchors.
-2. **Build a fixture.** A minimal app that triggers a representative subset of catalog entries. Annotate each line `// EXPECT-NNN`.
-3. **Build expected findings** for the regression test. `BC-ID<TAB>file<TAB>line` rows the runner must reproduce.
-4. **Wire the regression test.** Copy `evals/run.js` and swap the `PATTERNS` array.
-5. **Run the regression test.** Iterate until green.
-6. **Scaffold the behavior evals.** Ask Genesis: *"Use the genesis skill to scaffold evals for this skill per agentskills.io spec."* It will produce `evals/evals.json` (3 content evals with `with_skill` / `without_skill` shape) + `evals/triggers.json` (~20 dispatch trigger queries split 60/40 train/val). Then run them per [`evals/README.md`](../../.apm/skills/framework-modernizer/evals/README.md) and ship only when `with_skill` shows measurable delta over `without_skill`.
+```mermaid
+flowchart TD
+  CAT[(CATALOG<br/>next-14-to-15-breaking-changes.md<br/>BC-001 ... BC-010)]
+  RUB[(RUBRIC<br/>SAFE / AUTOFIX / MANUAL<br/>closed classes)]
+  TARGET[(TARGET APP<br/>zava-storefront/)]
+  FIX[(FIXTURE<br/>mini Next 14 app<br/>one hit per BC)]
 
-The file-by-file substitution is in `DESIGN.md` "Forking this pattern."
+  ORCH[SKILL PIPELINE<br/>discover - classify - dispatch]
+  DISC[DISCOVER<br/>grep or AST-backed regex pass]
+  CLASS[CLASSIFY<br/>catalog row + rubric]
+  AUTO[AUTOFIX<br/>edit in place]
+  MAN[MANUAL<br/>annotate plan row]
+  SAFE[SAFE<br/>checklist only]
 
-For an internal stretch: target your own platform repo (e.g. [`zava-platform`](https://github.com/DevExpGbb/zava-platform) as a public reference) — fork the modernizer for **Next 14 → 15** and run it against this template's own `zava-storefront/`. Have the skill open a PR with the autofixed phase committed and `MIGRATION-PLAN.md` attached.
+  PLAN[(MIGRATION-PLAN.md<br/>persisted output)]
+  SRC[(source files changed)]
+  REG[CATALOG REGRESSION<br/>expected findings == actual findings]
+  BEH[BEHAVIOR EVALS<br/>with_skill vs without_skill<br/>per agentskills.io]
+
+  CAT --> ORCH
+  RUB --> ORCH
+  TARGET --> DISC
+  ORCH --> DISC
+  DISC --> CLASS
+  CLASS --> AUTO
+  CLASS --> MAN
+  CLASS --> SAFE
+  AUTO --> SRC
+  AUTO --> PLAN
+  MAN --> PLAN
+  SAFE --> PLAN
+
+  CAT ==> REG
+  FIX ==> REG
+  ORCH ==> BEH
+  FIX ==> BEH
+```
+
+**Why this shape:**
+
+- **Pipeline, not panel.** Each finding flows through the same stages. There are no independent expert opinions to reconcile.
+- **Every finding cites a catalog row.** No row means no finding.
+- **Grep or an AST helper does the matching, not the LLM.** The model can explain and edit, but discovery starts from deterministic matches.
+- **The plan is a file.** `MIGRATION-PLAN.md` outlives the chat and can be reviewed in a PR.
+- **The rubric is closed.** Use only `SAFE`, `AUTOFIX`, and `MANUAL`.
+- **Two test layers.** Catalog regression catches broken regexes; behavior evals prove the skill beats `without_skill`.
+
+---
+
+## 🛠️ 4 · Build the skill and run it on the real app (25 min)
+
+Create:
+
+```text
+.apm/skills/nextjs-modernizer/SKILL.md
+.apm/skills/nextjs-modernizer/references/DESIGN.md
+.apm/skills/nextjs-modernizer/references/next-14-to-15-breaking-changes.md
+.apm/skills/nextjs-modernizer/references/classifier-rubric.md
+.apm/skills/nextjs-modernizer/evals/
+```
+
+Prompt your harness:
+
+```text
+Use the nextjs-modernizer skill on zava-storefront/.
+Scan the real tree. Classify each finding using the catalog and rubric.
+Apply AUTOFIX edits in place. Do not apply MANUAL edits.
+Write zava-storefront/MIGRATION-PLAN.md with:
+1. Autofixed items already done,
+2. Manual items with file/line pointers and judgment rationale,
+3. Validation checklist.
+```
+
+Then inspect the output:
+
+```bash
+git --no-pager diff -- zava-storefront
+git --no-pager diff -- zava-storefront/MIGRATION-PLAN.md
+```
+
+Eyeball at least one applied autofix. Good examples are:
+
+- a dynamic route page or layout that now awaits `params`,
+- a page that now awaits `searchParams`,
+- `experimental-edge` changed to `edge`,
+- `@next/font/*` changed to `next/font/*`, or
+- a renamed `next.config.js` option.
+
+Read the manual section of `MIGRATION-PLAN.md`. `fetch` caching and route-handler caching should usually stay manual because the right answer depends on product semantics, freshness, and origin load.
+
+---
+
+## ✅ 5 · Lock it with regression (10 min)
+
+Copy the Express pattern instead of inventing a new harness:
+
+```text
+.apm/skills/framework-modernizer/evals/run.js
+.apm/skills/framework-modernizer/evals/expected/findings.txt
+.apm/skills/framework-modernizer/evals/fixtures/express4-app/
+```
+
+Create a small Next fixture under:
+
+```text
+.apm/skills/nextjs-modernizer/evals/fixtures/next14-app/
+```
+
+Add one representative line per catalog entry, and a decoy line for at least two entries. Then create:
+
+```text
+.apm/skills/nextjs-modernizer/evals/expected/findings.txt
+```
+
+Use exact expected rows, not `>= 1` assertions. The runner should fail when a regex matches too little or too much.
+
+Run until green:
+
+```bash
+node .apm/skills/nextjs-modernizer/evals/run.js
+```
+
+Name the success output clearly, for example:
+
+```text
+✅ nextjs-modernizer catalog regression PASSED (N findings match expected)
+```
+
+For take-home, ask Genesis to scaffold behavior evals in the same style as the reference:
+
+```text
+Use the genesis skill to scaffold behavior evals for nextjs-modernizer per agentskills.io.
+Include with_skill and without_skill cases plus dispatch trigger evals.
+```
+
+---
+
+## 📋 6 · Review the handoff (10 min)
+
+Before you stop, read `zava-storefront/MIGRATION-PLAN.md` like a reviewer. Confirm the autofixed section matches the diff, the manual section gives enough file/line context for a human, and the validation checklist includes install, build, test, and one product smoke check. If the plan is vague, fix the skill instructions now; vague migration plans do not get clearer in CI.
+
+---
+
+## 🧭 When this is not enough
+
+A single-axis catalog-driven bump, like this Next 14 → 15 exercise, is exactly where a PIPELINE is the right answer. If the migration has interacting axes — for example the framework bump also forces a breaking `pg` 8 → 9 upgrade and a runtime or bundler default flip where ordering matters, compatibility windows matter, and rollback is not atomic — use the multi-agent review-panel pattern instead; see [Agentic SDLC track](agentic-sdlc.md) and [`docs/golden-examples/review-panel/`](../golden-examples/review-panel/).
+
+---
+
+## 📦 Take-home
+
+Finish the fork properly:
+
+1. Expand the catalog to all relevant Next 15 guide entries for your app family.
+2. Keep every row cited to an official source anchor.
+3. Keep the fixture small, but cover each catalog row with one expected hit.
+4. Keep `expected/findings.txt` exact.
+5. Run the catalog regression in CI.
+6. Add behavior evals with `with_skill` and `without_skill` runs.
+7. Run the skill on a fresh branch, review `MIGRATION-PLAN.md`, and open a PR with the autofix diff.
+
+> 📚 **Going deeper.** Re-read the reference `DESIGN.md` section on forking this pattern after the workshop; it explains which parts should stay stable and which parts should change per framework.
 
 ---
 
 ## 🎓 What you learned
 
-- **Source-grounded skills beat clever prompts.** A 12-row catalog with cited anchors beats "use your knowledge of Express 5" every time.
-- **Two test layers, two failure classes.** Catalog regression tests catch deterministic substrate drift in CI. Behavior evals (per [agentskills.io](https://agentskills.io/skill-creation/evaluating-skills)) catch "does the skill actually outperform `without_skill`?" Without both, you're guessing.
-- **Pipeline > Panel for mechanical work** — *most of the time*. Don't reach for fan-out/synthesizer when classification is deterministic. But Genesis may legitimately propose a different pattern if your migration's surface area genuinely has independent lenses — trust the design dialogue, not the template.
-- **Genesis is cheap enough to use as a thinking tool.** Cold-prompting it on a fork brief and reading the 8-step output is faster than reverse-engineering the shape from someone else's `DESIGN.md`. Use it on every non-trivial skill you ship, not just the ones you're stuck on.
-- **The handoff packet is portable.** A persisted `DESIGN.md` is what makes a skill forkable. Without it, the next fork starts from zero.
-- **One entry teaches the discipline.** The full catalog is engineering effort; the *shape* is what generalizes — and you saw it generalize when you diffed Genesis's output for your migration against ours.
-
+- **A modernizer is only as good as its catalog.** Source anchors keep the skill from inventing upgrade work.
+- **The real deliverable is a partial migration.** Safe edits are applied; judgment calls are visible in `MIGRATION-PLAN.md`.
+- **The rubric protects the app.** `AUTOFIX` is for mechanical edits; caching, Server Actions, and data freshness usually stay `MANUAL`.
+- **Regression tests protect the catalog.** Exact expected findings catch regex drift before CI runs the skill on a real app.
+- **Behavior evals prove value.** `with_skill` must beat `without_skill`, or the skill is not pulling its weight.
