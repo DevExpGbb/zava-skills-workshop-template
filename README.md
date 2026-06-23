@@ -99,6 +99,15 @@ gh repo view                       # resolves to your generated repo
 
 If `/genesis` surfaces in your harness and `apm deps list` shows five deps, you're ready. (Track-specific checks — like `npm test` for the test-improver — live in the track guides.)
 
+> 💡 **Working across sessions (git worktrees).** Skills you build live in `.apm/skills/…` **on the branch you built them on**. If your harness gives each session its own worktree or branch — **the GitHub Copilot app does this by default** — a skill from one session won't exist in the next until it's on `main`. Before you open a new session for the next step, land it:
+>
+> ```bash
+> git add .apm/skills && git commit -m "skill: <name>"
+> git push origin HEAD          # then merge this branch into main
+> ```
+>
+> In the new session: `git pull`, run `apm install` to deploy, then confirm it's there (`ls .apm/skills/<name>`). When you invoke it, check your agent **acknowledges loading it** (e.g. "Loaded skill `<name>`") — if it doesn't, it isn't on this branch yet.
+
 ---
 
 ## 🛤️ Section 1 · Pick your track (5 min)
