@@ -66,6 +66,16 @@ Read what Genesis proposes and check two things: it **reads your guideline files
 
 ## 🛠️ Build (20 min)
 
+> 🍴 **One-time: give your builder a push target.** Your builder opens its PR on **`zava-storefront`** — a repo you don't own. The clone from setup points at the read-only upstream, so fork it and re-point your clone once:
+>
+> ```bash
+> gh repo fork DevExpGbb/zava-storefront --clone=false --remote=false
+> git -C zava-storefront remote set-url origin \
+>   "https://github.com/$(gh api user -q .login)/zava-storefront.git"
+> ```
+>
+> Now the builder pushes branches and opens PRs on **your fork of `zava-storefront`** — *not* on your workshop-template repo, which only holds the skills. (Your local baseline stays `workshop-v1`; the fork's `main` is a few inert CI commits ahead, so the PR diff stays clean.)
+
 ### Step 1 — Write your three guideline files
 
 This is the part that makes your skills *yours*. Capture what your team checks for — three short markdown files, a handful of rules each is plenty:
@@ -100,6 +110,8 @@ The brief is just an **example** — build anything small with a bit of review s
 # Part 2 · The review panel (40 min)
 
 ## 🔍 Discover the problem (10 min)
+
+> ▶ **New session for this Part?** Land your previous skill on `main` first (see the README's [*Working across sessions*](../../README.md#-section-0--setup-15-min) note) — Part 3 needs **both** the builder and the panel present to compose them.
 
 You've got a real PR now — the one your builder just opened. Try the naive move first. Open a chat and type **"review this PR."** Two things go wrong, and they get worse as the PR gets bigger:
 
